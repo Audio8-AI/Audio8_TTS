@@ -33,8 +33,7 @@ The Preview checkpoint performs best in the following languages:
 ## Architecture
 
 audio8_tts uses a DualAR architecture inspired by
-[Fish Audio S2 Pro](https://github.com/fishaudio/fish-speech). The model weights
-were trained from scratch and do not use Fish Audio weights.
+[Fish Audio S2 Pro](https://github.com/fishaudio/fish-speech).
 
 | Component | Configuration |
 |---|---|
@@ -218,5 +217,4 @@ Code and model weights in this repository are released under the
 [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution details.
 
 We thank the Fish Audio team for publishing the DualAR architecture used in
-Fish S2 Pro. audio8_tts adopts the architectural idea while using independently
-trained weights.
+Fish S2 Pro.

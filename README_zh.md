@@ -29,7 +29,7 @@ Preview 模型当前表现较好、推荐使用的语言如下：
 ## 模型结构
 
 audio8_tts 沿用了 [Fish Audio S2 Pro](https://github.com/fishaudio/fish-speech)
-的 DualAR 架构思路。模型权重完全从零训练，没有使用 Fish Audio 权重。
+的 DualAR 架构思路。
 
 | 组件 | 配置 |
 |---|---|
@@ -196,5 +196,4 @@ Fish S2 Pro 因官方评测使用自身 normalizer 而重新评测，Higgs Audio
 
 本仓库代码和模型权重采用 [Apache License 2.0](LICENSE)，归属说明见 [NOTICE](NOTICE)。
 
-感谢 Fish Audio 团队公开 Fish S2 Pro 使用的 DualAR 架构。audio8_tts 借鉴了该架构思路，模型权重
-则为独立从零训练。
+感谢 Fish Audio 团队公开 Fish S2 Pro 使用的 DualAR 架构。
