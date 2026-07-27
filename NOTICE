@@ -1,0 +1,8 @@
+audio8_tts
+
+The audio8_tts model weights were trained from scratch and do not contain
+weights from Fish Audio models.
+
+The model architecture is inspired by the DualAR design used in Fish Audio
+S2 Pro. Fish Audio and Fish S2 Pro are trademarks or product names of their
+respective owners. This attribution does not imply endorsement.

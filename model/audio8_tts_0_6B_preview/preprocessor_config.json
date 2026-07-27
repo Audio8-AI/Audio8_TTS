@@ -1,0 +1,10 @@
+{
+  "audio_sampling_rate": 44100,
+  "auto_map": {
+    "AutoProcessor": "processing_arktts.ArkttsProcessor"
+  },
+  "feature_extractor_type": "ArkttsProcessor",
+  "num_codebooks": 10,
+  "processor_class": "ArkttsProcessor",
+  "semantic_begin_id": 151678
+}

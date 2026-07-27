@@ -1,0 +1,4 @@
+-r requirements.txt
+accelerate>=1.10
+deepspeed>=0.17
+tensorboard>=2.16

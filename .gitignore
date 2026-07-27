@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+outputs/
+runs/
+checkpoints/
+prepared_data/
+*.log
+
+# Model weights are distributed separately from the source repository.
+*.safetensors
+*.pth
+*.pt
+*.ckpt
+pytorch_model*.bin
