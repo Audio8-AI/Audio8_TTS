@@ -26,9 +26,6 @@ Preview 模型当前表现较好、推荐使用的语言如下：
 | Polish | 波兰语 |
 | Spanish | 西班牙语 |
 
-粤语是本 Preview 版本唯一正式支持的中文方言。其他语言和中文方言即使能够生成可听语音，当前
-也不声明为正式支持范围。
-
 ## 模型结构
 
 audio8_tts 沿用了 [Fish Audio S2 Pro](https://github.com/fishaudio/fish-speech)

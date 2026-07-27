@@ -30,10 +30,6 @@ The Preview checkpoint performs best in the following languages:
 | Polish | 波兰语 |
 | Spanish | 西班牙语 |
 
-Cantonese is the only Chinese dialect officially supported by this Preview.
-Other languages and Chinese dialects may produce audible speech, but they are
-not currently claimed as supported.
-
 ## Architecture
 
 audio8_tts uses a DualAR architecture inspired by
