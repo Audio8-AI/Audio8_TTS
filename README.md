@@ -178,16 +178,12 @@ shown as percentages.
 
 | Model | EN WER / SIM | ZH CER / SIM | Hard ZH CER / SIM |
 |---|---:|---:|---:|
-| **audio8_tts Preview** | **1.506 / 63.2** | 0.950 / 73.1 | 11.510 / 68.7 |
-| Fish S2 Pro | 1.607 / 64.6 | 1.038 / 73.8 | **10.149 / 70.1** |
-| Higgs Audio v2 | 1.524 / 66.4 | **0.806 / 72.1** | 10.622 / 69.3 |
-| CosyVoice3-1.5B | 2.22 / 72.0 | 1.12 / 78.1 | **5.83 / 75.8** |
+| audio8_tts Preview | 1.506 / 63.2 | 0.950 / 73.1 | 11.510 / 68.7 |
+| Fish S2 Pro | 1.607 / 64.6 | 1.038 / 73.8 | 10.149 / 70.1 |
+| Higgs Audio v2 | 1.524 / 66.4 | 0.806 / 72.1 | 10.622 / 69.3 |
+| CosyVoice3-1.5B | 2.22 / 72.0 | 1.12 / 78.1 | 5.83 / 75.8 |
 | MOSS-TTS | 1.85 / 73.4 | 1.20 / 78.8 | - |
-| Qwen3-TTS-1.7B | **1.23 / 71.7** | 1.22 / 77.0 | 6.76 / 74.8 |
-| VoxCPM2 | 1.84 / 75.3 | **0.97 / 79.5** | 8.13 / 75.3 |
-
-Bold values highlight low error rates for readability, not a strict
-cross-protocol ranking.
+| VoxCPM2 | 1.84 / 75.3 | 0.97 / 79.5 | 8.13 / 75.3 |
 
 ### CV3 multilingual error rate
 
