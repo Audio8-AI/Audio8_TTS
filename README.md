@@ -198,8 +198,6 @@ cross-protocol ranking.
 | Higgs Audio v2 | 3.378 | 3.404 | 10.424 | 5.754 | 4.742 | 4.260 | 3.300 | 2.929 | 9.425 | 3.555 | 5.423 |
 | CosyVoice3-1.5B | 3.91 | 4.99 | 9.77 | 10.55 | 7.57 | 5.69 | 6.43 | 4.47 | 11.8 | 10.5 | 6.64 |
 | VoxCPM2 | 3.65 | 5.00 | 8.55 | 8.48 | 5.96 | 5.69 | 4.77 | 3.80 | 9.85 | 4.25 | 5.21 |
-| MOSS-TTS | - | - | - | - | - | - | - | - | - | - | - |
-| Qwen3-TTS-1.7B | - | - | - | - | - | - | - | - | - | - | - |
 
 Fish S2 Pro was reevaluated because its official evaluation uses its own normalizer, Higgs Audio v2 was evaluated locally because concrete values were unavailable, and all other baselines use their official values as collected by the [VoxCPM repository](https://github.com/OpenBMB/VoxCPM).
 
