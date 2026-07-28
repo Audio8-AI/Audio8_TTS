@@ -1,11 +1,20 @@
+<div align="center">
+
 # audio8_tts Preview
 
-[中文说明](README_zh.md) | [Apache-2.0](LICENSE)
+**A 0.6B-parameter multilingual text-to-speech model with zero-shot voice cloning.**
 
-audio8_tts is a 0.6B-parameter text-to-speech model for multilingual speech
-generation and zero-shot voice cloning. This repository contains the Preview
-checkpoint, Hugging Face remote code, inference tools, and an independent SFT
-pipeline.
+[![GitHub](https://img.shields.io/badge/GitHub-audio8--tts--0.6B-black?style=for-the-badge&logo=github)](https://github.com/AutoArk/audio8-tts-0.6B)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--Preview--0.6b-yellow?style=for-the-badge)](https://huggingface.co/AutoArk-AI/Audio8-TTS-Preview-0.6b)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
+
+中文文档: [README_zh.md](README_zh.md)
+
+</div>
+
+This repository provides the audio8_tts Preview checkpoint, Hugging Face remote
+code, inference tools, and an independent SFT pipeline for multilingual speech
+generation and zero-shot voice cloning.
 
 > **Preview status:** language coverage is intentionally limited in this
 > release. Use the model primarily with the 11 recommended languages below.

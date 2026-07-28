@@ -1,9 +1,19 @@
+<div align="center">
+
 # audio8_tts Preview
 
-[English](README.md) | [Apache-2.0](LICENSE)
+**支持多语言语音生成和零样本音色克隆的 0.6B 参数文本转语音模型。**
 
-audio8_tts 是一个面向多语言语音生成和零样本音色克隆的 0.6B 参数文本转语音模型。本仓库提供
-Preview 版模型、Hugging Face remote code、推理工具和独立的 SFT 训练流程。
+[![GitHub](https://img.shields.io/badge/GitHub-audio8--tts--0.6B-black?style=for-the-badge&logo=github)](https://github.com/AutoArk/audio8-tts-0.6B)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--Preview--0.6b-yellow?style=for-the-badge)](https://huggingface.co/AutoArk-AI/Audio8-TTS-Preview-0.6b)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
+
+English: [README.md](README.md)
+
+</div>
+
+本仓库提供 audio8_tts Preview 版模型、Hugging Face remote code、推理工具和独立的 SFT
+训练流程，支持多语言语音生成和零样本音色克隆。
 
 > **Preview 说明：** 当前版本的语言覆盖仍然有限，建议优先在下列 11 种语言中使用。后续版本将
 > 持续补齐多语言和中文方言能力。
