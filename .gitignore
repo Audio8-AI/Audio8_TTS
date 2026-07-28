@@ -12,6 +12,7 @@ prepared_data/
 *.log
 
 # Model weights are distributed separately from the source repository.
+/model/
 *.safetensors
 *.pth
 *.pt
