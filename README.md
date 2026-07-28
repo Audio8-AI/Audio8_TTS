@@ -60,8 +60,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-The local checkpoint is stored in `model/audio8_tts_0_6B_preview`. All commands
-also accept a Hugging Face model ID through `--model`.
+Download the checkpoint from
+[Hugging Face](https://huggingface.co/AutoArk-AI/Audio8-TTS-Preview-0.6b) and
+place it in the repository's `model/` directory. The expected local checkpoint
+path is `model/audio8_tts_0_6B_preview/`. All commands also accept a Hugging
+Face model ID through `--model`.
 
 ## Inference
 

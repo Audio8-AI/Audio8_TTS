@@ -54,8 +54,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-本地模型位于 `model/audio8_tts_0_6B_preview`。所有命令也可以通过 `--model` 接收 Hugging Face
-模型 ID。
+请从 [Hugging Face](https://huggingface.co/AutoArk-AI/Audio8-TTS-Preview-0.6b)
+下载模型，并将其放入仓库的 `model/` 文件夹中。默认本地模型路径为
+`model/audio8_tts_0_6B_preview/`。所有命令也可以通过 `--model` 接收 Hugging Face 模型 ID。
 
 ## 推理
 
