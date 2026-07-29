@@ -1,0 +1,834 @@
+{
+  "cases": [
+    {
+      "order": 1,
+      "id": "chaos_tear_en_01",
+      "group": "selected_short",
+      "direction": null,
+      "hardCaseType": "english_irregular_pronunciation",
+      "title": "Tear in Eye, Dress You'll Tear",
+      "targetLanguage": "en-US",
+      "targetText": "I will keep you, Susy, busy,\nMake your head with heat grow dizzy;\nTear in eye, your dress you'll tear;\nQueer, fair seer, hear my prayer.",
+      "listenFor": "the contrasting pronunciations of tear in a complete stanza",
+      "expectedReading": "tear (in the eye): /tɪr/; tear (a dress): /tɛr/.",
+      "audioVersion": "20260724-chaos",
+      "source": {
+        "label": "Gerard Nolst Trenité, The Chaos (1922)",
+        "url": "https://ncf.idallen.com/english.html"
+      },
+      "reference": {
+        "language": "en",
+        "text": "What these pictures? An elephant with uh so many legs, and what's the woman doing on this beach? I don't know.",
+        "audio": "audio/cases/reference/chaos_tear_en_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/chaos_tear_en_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 2,
+      "id": "chaos_schism_en_01",
+      "group": "selected_short",
+      "direction": null,
+      "hardCaseType": "english_irregular_pronunciation",
+      "title": "Realm, Schedule, and Schism",
+      "targetLanguage": "en-US",
+      "targetText": "But mind trivial and vial,\nTripod, menial, denial,\nTroll and trolley, realm and ream,\nSchedule, mischief, schism, and scheme.",
+      "listenFor": "vial, tripod, realm, schedule, and schism within a complete stanza",
+      "expectedReading": "vial /ˈvaɪəl/; tripod /ˈtraɪpɑd/; realm /rɛlm/; schedule /ˈskɛdʒuːl/; schism /ˈskɪzəm/.",
+      "audioVersion": "20260724-chaos",
+      "source": {
+        "label": "Gerard Nolst Trenité, The Chaos (1922)",
+        "url": "https://ncf.idallen.com/english.html"
+      },
+      "reference": {
+        "language": "en",
+        "text": "Really needs more coffee or something, but I have no time to do any coffee because I have too many deadlines. I should pass everything tomorrow and I feel really very bad.",
+        "audio": "audio/cases/reference/chaos_schism_en_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/chaos_schism_en_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 5,
+      "id": "classical_polyphone_zh_01",
+      "group": "selected_short",
+      "direction": null,
+      "hardCaseType": "classical_readings",
+      "title": "Frontier Song - Lu Lun",
+      "targetLanguage": "zh-CN",
+      "targetText": "月黑雁飞高，单于夜遁逃。欲将轻骑逐，大雪满弓刀。",
+      "listenFor": "the readings of chanyu and qingqi within a complete quatrain",
+      "expectedReading": "单于 (chányú), 轻骑 (qīngqí, modern standard).",
+      "reference": {
+        "language": "zh",
+        "text": "根据最新气象资料，本周末北方多地将迎来降温，出行前请及时查看天气预报。",
+        "audio": "audio/cases/reference/classical_polyphone_zh_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/classical_polyphone_zh_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 7,
+      "id": "cross_enref_zh_places_01",
+      "group": "selected_short",
+      "direction": "en_ref_to_zh",
+      "hardCaseType": "place_names",
+      "title": "Chinese Place Names in Context from an English Reference",
+      "targetLanguage": "zh-CN",
+      "targetText": "名单中包括安徽省的六安、蚌埠、亳州和歙县，以及浙江省的丽水。",
+      "listenFor": "contextual Chinese place-name readings from an English reference",
+      "expectedReading": "六安 (Lù'ān), 蚌埠 (Bèngbù), 亳州 (Bózhōu), 歙县 (Shèxiàn), 丽水 (Líshuǐ).",
+      "audioVersion": "20260724-demo",
+      "reference": {
+        "language": "en",
+        "text": "Someone must move that table. I keep walking around here and I've never had that problem. The one time I'm not paying attention to where I'm going, of course. The one time I'm not wearing shoes.",
+        "audio": "audio/cases/reference/cross_enref_zh_places_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_enref_zh_places_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 8,
+      "id": "classical_polyphone_zh_02",
+      "group": "selected_short",
+      "direction": null,
+      "hardCaseType": "classical_readings",
+      "title": "Song of the Frontier - Lu Lun",
+      "targetLanguage": "zh-CN",
+      "targetText": "林暗草惊风，将军夜引弓。平明寻白羽，没在石棱中。",
+      "listenFor": "the classical reading of 没 and complete line delivery",
+      "expectedReading": "没在石棱中: mò zài shí léng zhōng.",
+      "reference": {
+        "language": "zh",
+        "text": "您别看这件事听着简单，真要做起来，还得把顺序一件一件理清楚。",
+        "audio": "audio/cases/reference/classical_polyphone_zh_02.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/classical_polyphone_zh_02.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 1,
+      "id": "twister_zh_01",
+      "group": "tongue_twisters_zh",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Eight Hundred Standard-Bearers",
+      "targetLanguage": "zh-CN",
+      "targetText": "八百标兵奔北坡，炮兵并排北边跑；炮兵怕把标兵碰，标兵怕碰炮兵炮。",
+      "listenFor": "b/p consonant boundaries and complete final syllables",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "至于什么山呢？神山世界中心啊，那四个字现在不让说了。标题上不能带。昨天带了以后直接拿下。所以说，就说就叫那那个山了，世界中心。",
+        "audio": "audio/cases/reference/twister_zh_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/twister_zh_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 2,
+      "id": "twister_zh_02",
+      "group": "tongue_twisters_zh",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Niu Lang and Liu Niang",
+      "targetLanguage": "zh-CN",
+      "targetText": "牛郎恋刘娘，刘娘念牛郎；牛郎年年恋刘娘，刘娘年年念牛郎。",
+      "listenFor": "n/l contrast and repeated name consistency",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "像我早上用完，今天一整天都是清清爽爽的。这男士洗面奶我也用过不少，大多洗完之后脸上特别干，紧绷得慌，还有一股很重的酒精味儿。",
+        "audio": "audio/cases/reference/twister_zh_02.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/twister_zh_02.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 3,
+      "id": "twister_zh_03",
+      "group": "tongue_twisters_zh",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Red Carp, Green Carp, and Donkey",
+      "targetLanguage": "zh-CN",
+      "targetText": "红鲤鱼家有头小绿驴叫李屡屡，绿鲤鱼家有头小红驴叫吕里里。",
+      "listenFor": "dense l initials and name separation",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "我的这位置能走吗？刘宗东一个Q，好角度Q了两个人。那这样老干爹在河道大获全胜。蝎子再一个一拳二重击配合着汤原的推。刘宗东点出一个赞，知道你换不了我，感觉就是我们输的那种情况呀。",
+        "audio": "audio/cases/reference/twister_zh_03.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/twister_zh_03.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 4,
+      "id": "twister_zh_04",
+      "group": "tongue_twisters_zh",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Black Fertilizer",
+      "targetLanguage": "zh-CN",
+      "targetText": "黑化肥发灰，灰化肥发黑；黑化肥发灰会挥发，灰化肥挥发会发黑。",
+      "listenFor": "h/f alternation without skipped words",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "首先，这个英雄啊，我确实没玩过。光看比赛的话，以为这英雄很难的，原来就是个大号得力。首先，他的被动：暴击额外造成百分之十的魔法伤害。",
+        "audio": "audio/cases/reference/twister_zh_04.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/twister_zh_04.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 5,
+      "id": "twister_en_01",
+      "group": "tongue_twisters_en",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Peter Piper",
+      "targetLanguage": "en-US",
+      "targetText": "Peter Piper picked a peck of pickled peppers. If Peter Piper picked a peck of pickled peppers, where is the peck of pickled peppers Peter Piper picked?",
+      "listenFor": "repeated p consonants, final clusters, and word completeness",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "You are really the the sunlight of my day. You, when I'm with you, I feel so much warmer and and better and safer and it's just the best feeling.",
+        "audio": "audio/cases/reference/twister_en_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/twister_en_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 6,
+      "id": "twister_en_02",
+      "group": "tongue_twisters_en",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Seashells",
+      "targetLanguage": "en-US",
+      "targetText": "She sells seashells by the seashore. The shells she sells are surely seashells, so if she sells shells on the seashore, I'm sure she sells seashore shells.",
+      "listenFor": "s/sh contrast and stable plural endings",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "Oh my gosh, I can't believe it! Are you serious? I can't believe I did that myself. What's going to be the next step from here?",
+        "audio": "audio/cases/reference/twister_en_02.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/twister_en_02.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 7,
+      "id": "twister_en_03",
+      "group": "tongue_twisters_en",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Betty Botter",
+      "targetLanguage": "en-US",
+      "targetText": "Betty Botter bought some butter, but she said the butter's bitter. If I put it in my batter, it will make my batter bitter.",
+      "listenFor": "rapid b/t alternation and distinct butter, bitter, and batter",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "Not an unusual sight, but she chose makeup so that'll be very smudgy for dad to deal with.",
+        "audio": "audio/cases/reference/twister_en_03.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/twister_en_03.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 8,
+      "id": "twister_en_04",
+      "group": "tongue_twisters_en",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Sixth Sick Sheik",
+      "targetLanguage": "en-US",
+      "targetText": "The sixth sick sheik's sixth sheep's sick.",
+      "listenFor": "sixth, sick, sheik, and sheep consonant clusters without deletion",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "What? Did you not see the stop sign? You just blew right through it. You could have T boned me and my wife right here. Are you kidding me? Dude, you need to watch where you're going.",
+        "audio": "audio/cases/reference/twister_en_04.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/twister_en_04.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 9,
+      "id": "classical_zh_01",
+      "group": "classical_chinese",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Invitation to Wine - Li Bai",
+      "targetLanguage": "zh-CN",
+      "targetText": "君不见黄河之水天上来，奔流到海不复回。君不见高堂明镜悲白发，朝如青丝暮成雪。人生得意须尽欢，莫使金樽空对月。天生我材必有用，千金散尽还复来。烹羊宰牛且为乐，会须一饮三百杯。岑夫子，丹丘生，将进酒，杯莫停。与君歌一曲，请君为我倾耳听。钟鼓馔玉不足贵，但愿长醉不复醒。古来圣贤皆寂寞，惟有饮者留其名。陈王昔时宴平乐，斗酒十千恣欢谑。主人何为言少钱，径须沽取对君酌。五花马，千金裘，呼儿将出换美酒，与尔同销万古愁。",
+      "listenFor": "complete-work continuity, sustained cadence, classical readings, and breath placement",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "这份报告明明昨天就该交，你现在才告诉我数据还没有核对完，怎么能这样？",
+        "audio": "audio/cases/reference/classical_zh_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/classical_zh_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 10,
+      "id": "classical_zh_02",
+      "group": "classical_chinese",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Climbing High - Du Fu",
+      "targetLanguage": "zh-CN",
+      "targetText": "风急天高猿啸哀，渚清沙白鸟飞回。无边落木萧萧下，不尽长江滚滚来。万里悲秋常作客，百年多病独登台。艰难苦恨繁霜鬓，潦倒新停浊酒杯。",
+      "listenFor": "complete regulated-verse structure, parallel phrasing, and final-line closure",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "我把那封信收进抽屉，很多话没有说出口，却一直留在心里。",
+        "audio": "audio/cases/reference/classical_zh_02.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/classical_zh_02.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 11,
+      "id": "classical_zh_03",
+      "group": "classical_chinese",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "Prelude to Water Melody - Su Shi",
+      "targetLanguage": "zh-CN",
+      "targetText": "明月几时有？把酒问青天。不知天上宫阙，今夕是何年。我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间。转朱阁，低绮户，照无眠。不应有恨，何事长向别时圆？人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。",
+      "listenFor": "complete-work phrasing, question cadence, and controlled transitions",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "清晨的薄雾沿着山谷慢慢散开，第一缕阳光落在安静的湖面上。",
+        "audio": "audio/cases/reference/classical_zh_03.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/classical_zh_03.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 12,
+      "id": "classical_zh_04",
+      "group": "classical_chinese",
+      "direction": null,
+      "hardCaseType": null,
+      "title": "The Hard Road to Shu - Li Bai",
+      "targetLanguage": "zh-CN",
+      "targetText": "噫吁嚱，危乎高哉！蜀道之难，难于上青天！蚕丛及鱼凫，开国何茫然！尔来四万八千岁，不与秦塞通人烟。",
+      "listenFor": "classical exclamations, uncommon names, and sustained opening cadence",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "我把那封信收进抽屉，很多话没有说出口，却一直留在心里。",
+        "audio": "audio/cases/reference/classical_zh_04.mp3?v=20260728-small-codec-r5"
+      },
+      "output": {
+        "audio": "audio/cases/output/classical_zh_04.mp3?v=20260728-small-codec-r5"
+      }
+    },
+
+    {
+      "order": 13,
+      "id": "cross_zhref_en_01",
+      "group": "cross_lingual",
+      "direction": "zh_ref_to_en",
+      "hardCaseType": null,
+      "title": "Quiet Current",
+      "targetLanguage": "en-US",
+      "targetText": "A quiet current moved beneath the bridge as the first train crossed the river.",
+      "listenFor": "English intelligibility with identity retained from a Mandarin reference",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "很多年以后，当我再次回到那座城市，才发现记忆里的街道和真实的风景已经完全不同。",
+        "audio": "audio/cases/reference/cross_zhref_en_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_zhref_en_01.mp3?v=20260728-small-codec-r3"
+      }
+    },
+    {
+      "order": 14,
+      "id": "cross_zhref_en_02",
+      "group": "cross_lingual",
+      "direction": "zh_ref_to_en",
+      "hardCaseType": null,
+      "title": "Station at Sunrise",
+      "targetLanguage": "en-US",
+      "targetText": "By sunrise, every window in the old station reflected a different shade of gold.",
+      "listenFor": "natural English prosody from a Mandarin reference",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "我把蓝色的风筝带到公园，风一吹，它就飞得比屋顶还高。",
+        "audio": "audio/cases/reference/cross_zhref_en_02.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_zhref_en_02.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 15,
+      "id": "cross_zhref_en_03",
+      "group": "cross_lingual",
+      "direction": "zh_ref_to_en",
+      "hardCaseType": null,
+      "title": "Blue Folder",
+      "targetLanguage": "en-US",
+      "targetText": "Please place the blue folder beside the lamp before the afternoon meeting begins.",
+      "listenFor": "stable consonants and speaker identity across languages",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "灯已经关了，大家都睡着了，我们轻一点说话，别把他们吵醒。",
+        "audio": "audio/cases/reference/cross_zhref_en_03.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_zhref_en_03.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 16,
+      "id": "cross_zhref_en_04",
+      "group": "cross_lingual",
+      "direction": "zh_ref_to_en",
+      "hardCaseType": null,
+      "title": "Museum Reopening",
+      "targetLanguage": "en-US",
+      "targetText": "The museum will reopen on Thursday after the final lighting system has been tested.",
+      "listenFor": "English phrasing and timbre transfer from a Mandarin reference",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "前往杭州的旅客请注意，检票口已经开放，请带好随身物品有序进站。",
+        "audio": "audio/cases/reference/cross_zhref_en_04.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_zhref_en_04.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 17,
+      "id": "cross_enref_zh_01",
+      "group": "cross_lingual",
+      "direction": "en_ref_to_zh",
+      "hardCaseType": null,
+      "title": "Mountains After Rain",
+      "targetLanguage": "zh-CN",
+      "targetText": "雨停以后，远处的山峰慢慢从云层里显现出来。",
+      "listenFor": "Mandarin intelligibility with identity retained from an English reference",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "The bakery opened before sunrise, and the first trays of bread were already cooling beside the window.",
+        "audio": "audio/cases/reference/cross_enref_zh_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_enref_zh_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 18,
+      "id": "cross_enref_zh_02",
+      "group": "cross_lingual",
+      "direction": "en_ref_to_zh",
+      "hardCaseType": null,
+      "title": "Meeting Folder",
+      "targetLanguage": "zh-CN",
+      "targetText": "请把桌上的蓝色文件夹交给下午来开会的同事。",
+      "listenFor": "natural Mandarin prosody from an English reference",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "I left the spare keys beside the blue notebook, just in case you arrive before I get home.",
+        "audio": "audio/cases/reference/cross_enref_zh_02.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_enref_zh_02.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 19,
+      "id": "cross_enref_zh_03",
+      "group": "cross_lingual",
+      "direction": "en_ref_to_zh",
+      "hardCaseType": null,
+      "title": "First Train",
+      "targetLanguage": "zh-CN",
+      "targetText": "清晨第一班列车经过大桥时，河面上还笼罩着薄雾。",
+      "listenFor": "stable Mandarin syllables and speaker identity across languages",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "After the storm passed, the children ran outside to inspect the branches scattered across the yard.",
+        "audio": "audio/cases/reference/cross_enref_zh_03.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_enref_zh_03.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 20,
+      "id": "cross_enref_zh_04",
+      "group": "cross_lingual",
+      "direction": "en_ref_to_zh",
+      "hardCaseType": null,
+      "title": "Museum Lighting",
+      "targetLanguage": "zh-CN",
+      "targetText": "博物馆将在照明系统完成测试后，于本周四重新开放。",
+      "listenFor": "Mandarin phrasing and timbre transfer from an English reference",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "Our meeting has moved to Thursday afternoon, so please update the calendar before lunch.",
+        "audio": "audio/cases/reference/cross_enref_zh_04.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/cross_enref_zh_04.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 21,
+      "id": "hard_terms_zh_01",
+      "group": "hard_cases",
+      "direction": null,
+      "hardCaseType": "difficult_terms_names",
+      "title": "Rare Chinese Characters",
+      "targetLanguage": "zh-CN",
+      "targetText": "耄耋老人谈起饕餮纹与狴犴像，言辞缱绻却不踟蹰，偶有龃龉也只是一笑置之。",
+      "listenFor": "耄耋, 饕餮, 狴犴, 缱绻, 踟蹰, and 龃龉",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "我在窗边写下这段话，院子里的桂花刚刚开，空气里有一阵淡淡的香气。",
+        "audio": "audio/cases/reference/hard_terms_zh_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/hard_terms_zh_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 22,
+      "id": "hard_terms_zh_02",
+      "group": "hard_cases",
+      "direction": null,
+      "hardCaseType": "difficult_terms_names",
+      "title": "Difficult Chinese Place Names",
+      "targetLanguage": "zh-CN",
+      "targetText": "从盱眙到郴州，再经亳州抵达台州，沿途地名中的生僻字最容易被误读。",
+      "listenFor": "盱眙, 郴州, 亳州, and 台州",
+      "expectedReading": null,
+      "reference": {
+        "language": "zh",
+        "text": "欢迎来到海边小镇，沿着这条石板路往前走，就能看到今天开放的灯塔。",
+        "audio": "audio/cases/reference/hard_terms_zh_02.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/hard_terms_zh_02.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 23,
+      "id": "hard_terms_en_01",
+      "group": "hard_cases",
+      "direction": null,
+      "hardCaseType": "difficult_terms_names",
+      "title": "Biomedical Vocabulary",
+      "targetLanguage": "en-US",
+      "targetText": "The otolaryngologist reviewed the electroencephalogram before discussing immunohistochemistry, pharmacokinetics, and the contraindications associated with hydroxychloroquine.",
+      "listenFor": "long biomedical words without syllable deletion",
+      "expectedReading": null,
+      "reference": {
+        "language": "en",
+        "text": "Now I'm gonna relax, and just cuddle with a blanket and watch some anime. Ah, it was such a great day today. I'm just happy.",
+        "audio": "audio/cases/reference/hard_terms_en_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/hard_terms_en_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 25,
+      "id": "hard_acronym_en_01",
+      "group": "hard_cases",
+      "direction": null,
+      "hardCaseType": "acronyms_initialisms",
+      "title": "Speech and AI Stack",
+      "targetLanguage": "en-US",
+      "targetText": "The ASR service sends a transcript to the LLM, while the TTS model renders the response on a GPU or an NPU.",
+      "listenFor": "ASR, LLM, TTS, GPU, and NPU spoken letter by letter",
+      "expectedReading": "A-S-R; L-L-M; T-T-S; G-P-U; N-P-U",
+      "reference": {
+        "language": "en",
+        "text": "This is a disgusting donut that is filled with nasty beans, and I don't like beans. I don't like donuts either.",
+        "audio": "audio/cases/reference/hard_acronym_en_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/hard_acronym_en_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 26,
+      "id": "hard_acronym_en_02",
+      "group": "hard_cases",
+      "direction": null,
+      "hardCaseType": "acronyms_initialisms",
+      "title": "Web Protocols",
+      "targetLanguage": "en-US",
+      "targetText": "The API returns JSON over HTTPS, stores the result in SQL, and exposes a URL for the HTML report.",
+      "listenFor": "letterwise technical initialisms with natural phrasing",
+      "expectedReading": "A-P-I; Jason; H-T-T-P-S; Sequel; U-R-L; H-T-M-L",
+      "reference": {
+        "language": "en",
+        "text": "Oh my goodness, look at that! That is the sweetest, cutest thing ever. I love it.",
+        "audio": "audio/cases/reference/hard_acronym_en_02.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/hard_acronym_en_02.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 27,
+      "id": "hard_acronym_en_03",
+      "group": "hard_cases",
+      "direction": null,
+      "hardCaseType": "acronyms_initialisms",
+      "title": "Acronyms Versus Initialisms",
+      "targetLanguage": "en-US",
+      "targetText": "NASA used the JWST and its NIRCam instrument to study a galaxy that the BBC later featured in a science report.",
+      "listenFor": "NASA as a word and mixed initialism behavior",
+      "expectedReading": "NASA word form; J-W-S-T; near-cam; B-B-C",
+      "reference": {
+        "language": "en",
+        "text": "Your grades are good, you're good at basketball, you're good at football, I just I can't tell you what you do. I am so proud of you, I'm proud to call you my son.",
+        "audio": "audio/cases/reference/hard_acronym_en_03.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/hard_acronym_en_03.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "order": 28,
+      "id": "hard_acronym_en_04",
+      "group": "hard_cases",
+      "direction": null,
+      "hardCaseType": "acronyms_initialisms",
+      "title": "Organizations and Roles",
+      "targetLanguage": "en-US",
+      "targetText": "The former CEO discussed NATO policy with CNN and the BBC before joining an IEEE panel in the UK.",
+      "listenFor": "mixed acronym and initialism behavior in ordinary prose",
+      "expectedReading": "C-E-O; NATO word form; C-N-N; B-B-C; I-triple-E; U-K",
+      "reference": {
+        "language": "en",
+        "text": "I'm so sad and alone and scared and cold. Wonder if anybody's gonna take me home ever. I don't like it here at the pound.",
+        "audio": "audio/cases/reference/hard_acronym_en_04.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/cases/output/hard_acronym_en_04.mp3?v=20260728-small-codec-r2"
+      }
+    }
+  ],
+  "multilingual": [
+    {
+      "id": "multilingual_zh_01",
+      "language": "Chinese",
+      "nativeName": "中文",
+      "targetLanguage": "zh-CN",
+      "targetText": "午后的阳光穿过窗帘，安静地落在书桌和刚泡好的茶上。",
+      "order": 1,
+      "reference": {
+        "language": "en",
+        "text": "The revised schedule is on your desk. Please confirm the delivery dates before the afternoon meeting begins.",
+        "audio": "audio/multilingual/reference/multilingual_zh_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_zh_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_nl_01",
+      "language": "Dutch",
+      "nativeName": "Nederlands",
+      "targetLanguage": "nl-NL",
+      "targetText": "Vanmorgen fietste ik langs de rivier, terwijl de stad langzaam wakker werd.",
+      "order": 2,
+      "reference": {
+        "language": "en",
+        "text": "I have walked this road for many years, and every bend still brings back a different memory.",
+        "audio": "audio/multilingual/reference/multilingual_nl_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_nl_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_en_01",
+      "language": "English",
+      "nativeName": "English",
+      "targetLanguage": "en-US",
+      "targetText": "The library was almost empty, so she chose a seat beside the window and began to read.",
+      "order": 3,
+      "reference": {
+        "language": "en",
+        "text": "The room is quiet now. Take a slow breath, close your eyes, and let the day fade gently away.",
+        "audio": "audio/multilingual/reference/multilingual_en_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_en_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_fr_01",
+      "language": "French",
+      "nativeName": "Français",
+      "targetLanguage": "fr-FR",
+      "targetText": "Après la pluie, les rues de Paris brillaient sous la lumière douce du soir.",
+      "order": 4,
+      "reference": {
+        "language": "en",
+        "text": "We finally received the good news this morning, and everyone in the office stopped to celebrate together.",
+        "audio": "audio/multilingual/reference/multilingual_fr_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_fr_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_de_01",
+      "language": "German",
+      "nativeName": "Deutsch",
+      "targetLanguage": "de-DE",
+      "targetText": "Am frühen Morgen öffnete der Bäcker die Tür, und der Duft von frischem Brot erfüllte die Straße.",
+      "order": 5,
+      "reference": {
+        "language": "en",
+        "text": "The museum opens at nine tomorrow morning, and the first guided tour begins beside the main entrance.",
+        "audio": "audio/multilingual/reference/multilingual_de_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_de_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_it_01",
+      "language": "Italian",
+      "nativeName": "Italiano",
+      "targetLanguage": "it-IT",
+      "targetText": "Questa sera ceneremo in terrazza, se il vento rimane calmo e il cielo sereno.",
+      "order": 6,
+      "reference": {
+        "language": "en",
+        "text": "You should have seen the garden after the rain; every flower was shining, and the whole place smelled fresh.",
+        "audio": "audio/multilingual/reference/multilingual_it_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_it_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_ja_01",
+      "language": "Japanese",
+      "nativeName": "日本語",
+      "targetLanguage": "ja-JP",
+      "targetText": "週末は家族と海辺を散歩して、夕日を見ながらゆっくり話しました。",
+      "order": 7,
+      "reference": {
+        "language": "ja",
+        "text": "今日は少し寒いけれど、約束どおり駅前で会いましょう。温かい飲み物も忘れずに持ってきてね。",
+        "audio": "audio/multilingual/reference/multilingual_ja_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_ja_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_ko_01",
+      "language": "Korean",
+      "nativeName": "한국어",
+      "targetLanguage": "ko-KR",
+      "targetText": "비가 그친 뒤에 우리는 공원을 천천히 걸으며 맑아진 하늘을 바라보았습니다.",
+      "order": 8,
+      "reference": {
+        "language": "en",
+        "text": "With only seconds left, he takes the pass, turns past the defender, and sends the ball into the top corner.",
+        "audio": "audio/multilingual/reference/multilingual_ko_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_ko_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_pl_01",
+      "language": "Polish",
+      "nativeName": "Polski",
+      "targetLanguage": "pl-PL",
+      "targetText": "Po południu spotkamy się w małej kawiarni niedaleko starego rynku.",
+      "order": 9,
+      "reference": {
+        "language": "en",
+        "text": "Long before this village had a name, travelers followed the river north and rested beneath these ancient trees.",
+        "audio": "audio/multilingual/reference/multilingual_pl_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_pl_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_es_01",
+      "language": "Spanish",
+      "nativeName": "Español",
+      "targetLanguage": "es-ES",
+      "targetText": "Cuando terminó la reunión, salimos al balcón para disfrutar del aire fresco.",
+      "order": 10,
+      "reference": {
+        "language": "en",
+        "text": "We finally received the good news this morning, and everyone in the office stopped to celebrate together.",
+        "audio": "audio/multilingual/reference/multilingual_es_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_es_01.mp3?v=20260728-small-codec-r2"
+      }
+    },
+    {
+      "id": "multilingual_yue_01",
+      "language": "Cantonese",
+      "nativeName": "粤语",
+      "targetLanguage": "yue-Hant-HK",
+      "targetText": "嘩，前日真係好好天喎！我哋飲完早茶就出去行吓，跟住同朋友食咗個叉燒飯，大家一路傾偈一路行街，玩到夜晚先返屋企。",
+      "order": 11,
+      "reference": {
+        "language": "zh",
+        "text": "沿着这条古老的河流，人们修建村庄和桥梁，也留下了许多代代相传的故事。",
+        "audio": "audio/multilingual/reference/multilingual_yue_01.mp3?v=20260728-small-codec-r2"
+      },
+      "output": {
+        "audio": "audio/multilingual/output/multilingual_yue_01.mp3?v=20260728-small-codec-r2"
+      }
+    }
+  ]
+}
