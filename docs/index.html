@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="Audio8-TTS-0.6B local research listening preview">
+    <title>Audio8-TTS-0.6B - Listening Preview</title>
+    <link rel="stylesheet" href="styles.css?v=20260728-small-codec">
+  </head>
+  <body>
+    <header class="masthead" id="top">
+      <div class="shell project-header">
+        <div class="title-row">
+          <div>
+            <h1>Audio8-TTS-0.6B</h1>
+            <p class="subtitle">Research listening preview for multilingual zero-shot text-to-speech.</p>
+          </div>
+          <a class="repo-link" href="https://github.com/Audio8-AI/Audio8_TTS" target="_blank" rel="noreferrer">GitHub Repository</a>
+        </div>
+        <div class="overview-grid">
+          <section aria-labelledby="overview-title">
+            <h2 id="overview-title">Overview</h2>
+            <p>
+              This page presents outputs from the current Audio8-TTS-0.6B preview checkpoint.
+              It includes the recommended language set, targeted pronunciation challenges,
+              tongue twisters, complete classical Chinese works, cross-lingual cloning, and
+              dense lexical tests.
+            </p>
+          </section>
+          <section aria-labelledby="references-title">
+            <h2 id="references-title">Reference audio</h2>
+            <p>
+              The listening set combines difficult in-the-wild speech with cleaner expressive
+              prompts. This mix separates robustness to imperfect recordings from pronunciation,
+              prosody, and cross-language speaker-identity transfer.
+            </p>
+          </section>
+        </div>
+      </div>
+    </header>
+
+    <nav class="section-nav" aria-label="Listening sections">
+      <div class="shell nav-inner">
+        <a href="#multilingual">Multilingual <span>11</span></a>
+        <a href="#pronunciation-challenges">Pronunciation <span>05</span></a>
+        <a href="#tongue-twisters">Tongue twisters <span>08</span></a>
+        <a href="#classical-chinese">Classical Chinese <span>04</span></a>
+        <a href="#cross-lingual">Cross-lingual <span>08</span></a>
+        <a href="#hard-cases">Hard cases <span>07</span></a>
+      </div>
+    </nav>
+
+    <main id="demo-root">
+      <p class="loading shell" role="status">Loading the listening set...</p>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell"><p><strong>Audio8-TTS-0.6B</strong> / Local listening preview</p></div>
+    </footer>
+    <a class="back-to-top" href="#top" aria-label="Back to top" title="Back to top">&uarr;</a>
+    <script src="app.js?v=20260728-small-codec-r7" defer></script>
+  </body>
+</html>
