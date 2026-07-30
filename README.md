@@ -206,6 +206,8 @@ shown as percentages.
 | MOSS-TTS | 8.5B | 1.85 / 73.4 | 1.20 / 78.8 | - |
 | VoxCPM2 | 2.3B | 1.84 / **75.3** | 0.97 / **79.5** | 8.13 / 75.3 |
 
+![Seed-TTS WER and CER comparison](figures/evaluation/fig1_seed_tts_error_rates.png)
+
 ### CV3 multilingual error rate
 
 | Model | Parameters | zh | en | hard-zh | hard-en | ja | ko | de | es | fr | it | ru |
@@ -215,6 +217,8 @@ shown as percentages.
 | Higgs Audio v2 | 4.7B | 3.378 | 3.404 | 10.424 | **5.754** | **4.742** | 4.260 | **3.300** | **2.929** | 9.425 | **3.555** | 5.423 |
 | CosyVoice3-1.5B | 1.5B | 3.91 | 4.99 | 9.77 | 10.55 | 7.57 | 5.69 | 6.43 | 4.47 | 11.8 | 10.5 | 6.64 |
 | VoxCPM2 | 2.3B | 3.65 | 5.00 | **8.55** | 8.48 | 5.96 | 5.69 | 4.77 | 3.80 | 9.85 | 4.25 | 5.21 |
+
+![CV3 multilingual WER and CER comparison](figures/evaluation/fig2_cv3_error_rates.png)
 
 Parameter counts are calculated directly from the released weight tensors.
 MOSS-TTS contains 8,489,841,664 parameters. VoxCPM2's main model contains

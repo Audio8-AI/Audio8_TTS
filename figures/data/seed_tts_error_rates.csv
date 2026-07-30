@@ -1,0 +1,7 @@
+model,parameters_b,en_wer,zh_cer
+Audio8 TTS Preview,0.6,1.506,0.950
+Fish S2 Pro,4.6,1.607,1.038
+Higgs Audio v2,4.7,1.524,0.806
+CosyVoice3-1.5B,1.5,2.22,1.12
+MOSS-TTS,8.5,1.85,1.20
+VoxCPM2,2.3,1.84,0.97
