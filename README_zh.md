@@ -189,7 +189,7 @@ WER/CER 越低越好，SIM 越高越好。Seed-TTS 的相似度统一显示为�
 | MOSS-TTS | 8.5B | 1.85 / 73.4 | 1.20 / 78.8 | - |
 | VoxCPM2 | 2.3B | 1.84 / **75.3** | 0.97 / **79.5** | 8.13 / 75.3 |
 
-![Seed-TTS WER 和 CER 对比](figures/evaluation/fig1_seed_tts_error_rates.png)
+![Seed-TTS WER 和 CER 对比](assets/evaluation/seed_tts_error_rates.png)
 
 ### CV3 多语言错误率
 
@@ -201,7 +201,7 @@ WER/CER 越低越好，SIM 越高越好。Seed-TTS 的相似度统一显示为�
 | CosyVoice3-1.5B | 1.5B | 3.91 | 4.99 | 9.77 | 10.55 | 7.57 | 5.69 | 6.43 | 4.47 | 11.8 | 10.5 | 6.64 |
 | VoxCPM2 | 2.3B | 3.65 | 5.00 | **8.55** | 8.48 | 5.96 | 5.69 | 4.77 | 3.80 | 9.85 | 4.25 | 5.21 |
 
-![CV3 多语言 WER 和 CER 对比](figures/evaluation/fig2_cv3_error_rates.png)
+![CV3 多语言 WER 和 CER 对比](assets/evaluation/cv3_error_rates.png)
 
 参数量直接根据已发布的权重张量统计。MOSS-TTS 包含 8,489,841,664 个参数；VoxCPM2 主模型
 包含 2,290,004,544 个参数，单独的 AudioVAE 不计入本次参数量对比。
