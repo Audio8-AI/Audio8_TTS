@@ -7,4 +7,4 @@
 - [x] Generated 450 DPI PNG and SVG figures.
 - [x] Visually inspected figures and verified data labels.
 - [x] Embedded figures in English and Chinese READMEs.
-- [ ] Committed and pushed the completed visualization assets.
+- [x] Committed and pushed the completed visualization assets.
