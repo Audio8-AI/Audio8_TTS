@@ -112,6 +112,121 @@ python audio8_tts_infer.py \
 批量命令会生成 `manifest.jsonl` 和 `failures.jsonl`。除非传入 `--overwrite`，否则已有 WAV 会
 被跳过。采样和 codec codes 保存参数可通过 `python audio8_tts_infer.py --help` 查看。
 
+## SGLang Omni 服务部署
+
+[`sglang_omni/`](sglang_omni/) 中的适配器提供兼容 OpenAI API 的推理服务，包含 SGLang
+paged attention、动态 batching、Fast AR 固定 KV cache、参考音频编码和 waveform 解码。
+它以独立的 `audio8_tts` 模型插件安装，不会覆盖 SGLang Omni 核心文件。
+
+### 兼容版本
+
+适配器使用了 SGLang Omni 的内部接口，因此部署时应固定到以下已验证版本，不要直接使用最新
+`main` 分支。
+
+| 依赖 | 已验证版本 |
+|---|---|
+| SGLang Omni | `68a572348837f7b004857b4b07993c20ade4c017`（`0.1.0`） |
+| SGLang | `0.5.8` |
+| PyTorch | `2.9.1+cu128` |
+| Transformers | `4.57.1` |
+| 精度 | BF16 |
+
+### 安装
+
+在 Audio8 TTS 仓库根目录执行以下命令。示例使用 Python 3.12 和
+[`uv`](https://docs.astral.sh/uv/)。
+
+```bash
+export SGLANG_OMNI_ROOT=/opt/sglang-omni
+export MODEL=/models/Audio8-TTS-Preview-0.6b
+
+git clone https://github.com/sgl-project/sglang-omni.git "${SGLANG_OMNI_ROOT}"
+git -C "${SGLANG_OMNI_ROOT}" checkout 68a572348837f7b004857b4b07993c20ade4c017
+
+uv venv .venv-sglang --python 3.12
+source .venv-sglang/bin/activate
+uv pip install -v -e "${SGLANG_OMNI_ROOT}"
+
+hf download AutoArk-AI/Audio8-TTS-Preview-0.6b --local-dir "${MODEL}"
+./sglang_omni/scripts/install_adapter.sh "${SGLANG_OMNI_ROOT}"
+python3 ./sglang_omni/scripts/verify_install.py --model-path "${MODEL}"
+```
+
+如果 SGLang Omni 已通过 wheel 或 site-packages 安装，可以定位其包目录后安装适配器：
+
+```bash
+SGLANG_OMNI_PACKAGE="$(python3 -c 'import importlib.util, pathlib; s=importlib.util.find_spec("sglang_omni"); assert s and s.origin; print(pathlib.Path(s.origin).parent)')"
+./sglang_omni/scripts/install_adapter.sh "${SGLANG_OMNI_PACKAGE}"
+```
+
+### 启动服务
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+SGLANG_OMNI_ROOT="${SGLANG_OMNI_ROOT}" \
+MODEL="${MODEL}" \
+HOST=0.0.0.0 \
+PORT=8010 \
+./sglang_omni/scripts/run_server.sh
+```
+
+默认配置使用模型名 `audio8/tts-0.6b`、BF16、单卡、`0.2` 静态显存比例和最多 32 个并发
+请求。主要运行参数包括 `MODEL_NAME`、`AUDIO8_TTS_MEM_FRACTION_STATIC`、
+`AUDIO8_TTS_MAX_RUNNING_REQUESTS`、`AUDIO8_TTS_CHUNKED_PREFILL_SIZE` 和
+`AUDIO8_TTS_DISABLE_CUDA_GRAPH`。如果运行依赖安装在单独的 site-packages 目录中，请设置
+`SGLANG_OMNI_SITE_PACKAGES`。
+
+### 调用 API
+
+无参考音频生成：
+
+```bash
+curl -sS --fail-with-body \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "audio8/tts-0.6b",
+    "input": "你好，这是 Audio8 TTS 服务测试。",
+    "response_format": "wav",
+    "max_new_tokens": 256,
+    "temperature": 0.8,
+    "top_p": 0.95,
+    "top_k": 50
+  }' \
+  http://127.0.0.1:8010/v1/audio/speech \
+  -o audio8.wav
+```
+
+使用一个参考音色生成：
+
+```bash
+curl -sS --fail-with-body \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "audio8/tts-0.6b",
+    "input": "这句话使用参考音色生成。",
+    "response_format": "wav",
+    "temperature": 0.8,
+    "top_p": 0.95,
+    "top_k": 50,
+    "references": [{
+      "audio_path": "/data/reference.wav",
+      "text": "参考录音对应的准确文本。"
+    }]
+  }' \
+  http://127.0.0.1:8010/v1/audio/speech \
+  -o audio8_clone.wav
+```
+
+参考音频路径必须在服务运行环境中可见。当前适配器支持 TP=1、每个请求一个 reference 和
+非流式 WAV 输出。运行以下 smoke test 可以验证部署：
+
+```bash
+BASE_URL=http://127.0.0.1:8010 ./sglang_omni/scripts/smoke_test.sh
+```
+
+构建镜像时，请在安装 SGLang Omni 包及其 Python 依赖后追加
+[`sglang_omni/Dockerfile.snippet`](sglang_omni/Dockerfile.snippet)。
+
 ## SFT 训练
 
 先安装训练依赖：
