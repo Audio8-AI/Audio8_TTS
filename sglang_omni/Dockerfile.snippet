@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Add these instructions to the SGLang-Omni image after its Python environment
+# and sglang_omni package have been installed.
+
+COPY sglang_omni /opt/audio8-adapter
+
+# This works for both wheel and editable installs. It resolves the package
+# without importing the full SGLang runtime during docker build.
+RUN SGLANG_OMNI_PACKAGE="$(python3 -c 'import importlib.util, pathlib; s=importlib.util.find_spec("sglang_omni"); assert s and s.origin; print(pathlib.Path(s.origin).parent)')" && \
+    /opt/audio8-adapter/scripts/install_adapter.sh "${SGLANG_OMNI_PACKAGE}" && \
+    python3 /opt/audio8-adapter/scripts/verify_install.py
+
+ENV AUDIO8_TTS_MEM_FRACTION_STATIC=0.2 \
+    AUDIO8_TTS_MAX_RUNNING_REQUESTS=32 \
+    AUDIO8_TTS_DISABLE_CUDA_GRAPH=0 \
+    FLASHINFER_WORKSPACE_BASE=/tmp/audio8-flashinfer
+
+# Mount or COPY the checkpoint to this path at runtime:
+# /models/Audio8-TTS-Preview-0.6b
+#
+# Example container command:
+# /opt/audio8-adapter/scripts/run_server.sh

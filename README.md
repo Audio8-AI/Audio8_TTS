@@ -122,6 +122,127 @@ The batch command writes `manifest.jsonl` and `failures.jsonl`. Existing WAV
 files are skipped unless `--overwrite` is passed. See
 `python audio8_tts_infer.py --help` for sampling and code-saving options.
 
+## SGLang Omni Serving
+
+The adapter in [`sglang_omni/`](sglang_omni/) provides an OpenAI-compatible
+service with SGLang paged attention, dynamic batching, a fixed KV cache for the
+fast codebook decoder, reference-audio encoding, and waveform decoding. It is
+installed as an independent `audio8_tts` model plugin and does not overwrite
+SGLang Omni core files.
+
+### Compatibility
+
+The adapter uses internal SGLang Omni interfaces, so deploy it with the tested
+revision instead of the latest `main` branch.
+
+| Dependency | Tested version |
+|---|---|
+| SGLang Omni | `68a572348837f7b004857b4b07993c20ade4c017` (`0.1.0`) |
+| SGLang | `0.5.8` |
+| PyTorch | `2.9.1+cu128` |
+| Transformers | `4.57.1` |
+| Precision | BF16 |
+
+### Install
+
+Run these commands from the Audio8 TTS repository root. The example uses
+Python 3.12 and [`uv`](https://docs.astral.sh/uv/).
+
+```bash
+export SGLANG_OMNI_ROOT=/opt/sglang-omni
+export MODEL=/models/Audio8-TTS-Preview-0.6b
+
+git clone https://github.com/sgl-project/sglang-omni.git "${SGLANG_OMNI_ROOT}"
+git -C "${SGLANG_OMNI_ROOT}" checkout 68a572348837f7b004857b4b07993c20ade4c017
+
+uv venv .venv-sglang --python 3.12
+source .venv-sglang/bin/activate
+uv pip install -v -e "${SGLANG_OMNI_ROOT}"
+
+hf download AutoArk-AI/Audio8-TTS-Preview-0.6b --local-dir "${MODEL}"
+./sglang_omni/scripts/install_adapter.sh "${SGLANG_OMNI_ROOT}"
+python3 ./sglang_omni/scripts/verify_install.py --model-path "${MODEL}"
+```
+
+For an existing wheel or site-packages installation, resolve the package
+directory and install the adapter there:
+
+```bash
+SGLANG_OMNI_PACKAGE="$(python3 -c 'import importlib.util, pathlib; s=importlib.util.find_spec("sglang_omni"); assert s and s.origin; print(pathlib.Path(s.origin).parent)')"
+./sglang_omni/scripts/install_adapter.sh "${SGLANG_OMNI_PACKAGE}"
+```
+
+### Start the service
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+SGLANG_OMNI_ROOT="${SGLANG_OMNI_ROOT}" \
+MODEL="${MODEL}" \
+HOST=0.0.0.0 \
+PORT=8010 \
+./sglang_omni/scripts/run_server.sh
+```
+
+The defaults use model name `audio8/tts-0.6b`, BF16, one GPU, a `0.2` static
+memory fraction, and up to 32 running requests. The main runtime controls are
+`MODEL_NAME`, `AUDIO8_TTS_MEM_FRACTION_STATIC`,
+`AUDIO8_TTS_MAX_RUNNING_REQUESTS`, `AUDIO8_TTS_CHUNKED_PREFILL_SIZE`, and
+`AUDIO8_TTS_DISABLE_CUDA_GRAPH`. Set `SGLANG_OMNI_SITE_PACKAGES` when the
+runtime dependencies are installed in a separate site-packages directory.
+
+### Call the API
+
+Generate speech without a reference:
+
+```bash
+curl -sS --fail-with-body \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "audio8/tts-0.6b",
+    "input": "Hello from Audio8 TTS.",
+    "response_format": "wav",
+    "max_new_tokens": 256,
+    "temperature": 0.8,
+    "top_p": 0.95,
+    "top_k": 50
+  }' \
+  http://127.0.0.1:8010/v1/audio/speech \
+  -o audio8.wav
+```
+
+Generate speech with one reference voice:
+
+```bash
+curl -sS --fail-with-body \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "audio8/tts-0.6b",
+    "input": "This sentence uses the reference voice.",
+    "response_format": "wav",
+    "temperature": 0.8,
+    "top_p": 0.95,
+    "top_k": 50,
+    "references": [{
+      "audio_path": "/data/reference.wav",
+      "text": "The exact transcript of the reference recording."
+    }]
+  }' \
+  http://127.0.0.1:8010/v1/audio/speech \
+  -o audio8_clone.wav
+```
+
+The reference path must be visible inside the service environment. The current
+adapter supports TP=1, one reference per request, and non-streaming WAV output.
+Run the smoke test to verify a deployment:
+
+```bash
+BASE_URL=http://127.0.0.1:8010 ./sglang_omni/scripts/smoke_test.sh
+```
+
+To build the adapter into an existing image, append
+[`sglang_omni/Dockerfile.snippet`](sglang_omni/Dockerfile.snippet) after the
+SGLang Omni package and its Python dependencies are installed.
+
 ## Supervised Fine-tuning
 
 Install the training dependencies first:
