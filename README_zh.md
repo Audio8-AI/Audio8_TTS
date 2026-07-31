@@ -342,4 +342,10 @@ Fish S2 Pro 因官方评测使用自身 normalizer 而重新评测。Higgs Audio
 
 ## Star 历史
 
-[![Star History 图表](https://api.star-history.com/svg?repos=Audio8-AI/Audio8_TTS&type=Date)](https://www.star-history.com/#Audio8-AI/Audio8_TTS&Date)
+<a href="https://www.star-history.com/?type=date&repos=Audio8-AI%2FAudio8_TTS">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Audio8-AI/Audio8_TTS&type=date&theme=dark&legend=top-left&sealed_token=ShFu9kcwBvymYQ4SjQ_NhkplHrefNRbYVYCiBIvIxnaBLKbEQ1cjHQBs2kZm7K5LNMWpU13JxWgA6zpHvmwh49FokyJ26axmq-0gG8b68Q8IJCyUDZW1jQ" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Audio8-AI/Audio8_TTS&type=date&legend=top-left&sealed_token=ShFu9kcwBvymYQ4SjQ_NhkplHrefNRbYVYCiBIvIxnaBLKbEQ1cjHQBs2kZm7K5LNMWpU13JxWgA6zpHvmwh49FokyJ26axmq-0gG8b68Q8IJCyUDZW1jQ" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Audio8-AI/Audio8_TTS&type=date&legend=top-left&sealed_token=ShFu9kcwBvymYQ4SjQ_NhkplHrefNRbYVYCiBIvIxnaBLKbEQ1cjHQBs2kZm7K5LNMWpU13JxWgA6zpHvmwh49FokyJ26axmq-0gG8b68Q8IJCyUDZW1jQ" />
+ </picture>
+</a>
