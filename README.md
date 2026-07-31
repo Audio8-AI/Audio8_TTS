@@ -2,7 +2,7 @@
 
 <img src="assets/20260729-124515.jpeg" alt="Audio8" width="100%">
 
-# audio8_tts Preview
+# Audio8_TTS Preview
 
 **A 0.6B-parameter multilingual text-to-speech model with zero-shot voice cloning.**
 
