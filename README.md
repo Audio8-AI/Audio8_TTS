@@ -8,7 +8,8 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-Audio8__TTS-black?style=for-the-badge&logo=github)](https://github.com/Audio8-AI/Audio8_TTS)
 [![Demo](https://img.shields.io/badge/Demo-Audio%20Samples-brightgreen?style=for-the-badge&logo=githubpages)](https://audio8-ai.github.io/Audio8_TTS/)
-[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--Preview--0.6b-yellow?style=for-the-badge)](https://huggingface.co/AutoArk-AI/Audio8-TTS-Preview-0.6b)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--Preview--0.6b-yellow?style=for-the-badge)](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6b)
+[![ONNX INT4](https://img.shields.io/badge/ONNX-INT4-005CED?style=for-the-badge&logo=onnx)](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6B-ONNX-INT4)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 
 中文文档: [README_zh.md](README_zh.md)
@@ -73,7 +74,7 @@ pip install -r requirements.txt
 ```
 
 Download the checkpoint from
-[Hugging Face](https://huggingface.co/AutoArk-AI/Audio8-TTS-Preview-0.6b) and
+[Hugging Face](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6b) and
 place it in the repository's `model/` directory. The expected local checkpoint
 path is `model/audio8_tts_0_6B_preview/`. All commands also accept a Hugging
 Face model ID through `--model`.
@@ -121,6 +122,21 @@ python audio8_tts_infer.py \
 The batch command writes `manifest.jsonl` and `failures.jsonl`. Existing WAV
 files are skipped unless `--overwrite` is passed. See
 `python audio8_tts_infer.py --help` for sampling and code-saving options.
+
+## CPU ONNX Runtime
+
+[`onnx_runtime/`](onnx_runtime/) provides a standalone CPU deployment using
+weight-only INT4 Slow/Fast AR models, FP16 activations and KV caches, and an
+FP16 codec. It includes CLI inference, a local web and HTTP service, streaming
+PCM output, and reference-voice registration without PyTorch or Transformers.
+
+The online sessions use about 1 GiB of memory in the tested Apple M2 setup.
+During voice registration, the online sessions are released before the codec
+encoder is loaded to keep peak memory low.
+
+Download the ONNX model from
+[Audio8-TTS-Preview-0.6B-ONNX-INT4](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6B-ONNX-INT4)
+and follow the [ONNX Runtime guide](onnx_runtime/README.md).
 
 ## SGLang Omni Serving
 
