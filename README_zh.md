@@ -339,3 +339,7 @@ Fish S2 Pro 因官方评测使用自身 normalizer 而重新评测。Higgs Audio
 本仓库代码和模型权重采用 [Apache License 2.0](LICENSE)，归属说明见 [NOTICE](NOTICE)。
 
 感谢 Fish Audio 团队公开 Fish S2 Pro 使用的 DualAR 架构。
+
+## Star 历史
+
+[![Star History 图表](https://api.star-history.com/svg?repos=Audio8-AI/Audio8_TTS&type=Date)](https://www.star-history.com/#Audio8-AI/Audio8_TTS&Date)
