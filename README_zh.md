@@ -8,7 +8,8 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-Audio8__TTS-black?style=for-the-badge&logo=github)](https://github.com/Audio8-AI/Audio8_TTS)
 [![Demo](https://img.shields.io/badge/Demo-Audio%20Samples-brightgreen?style=for-the-badge&logo=githubpages)](https://audio8-ai.github.io/Audio8_TTS/)
-[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--Preview--0.6b-yellow?style=for-the-badge)](https://huggingface.co/AutoArk-AI/Audio8-TTS-Preview-0.6b)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--Preview--0.6b-yellow?style=for-the-badge)](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6b)
+[![ONNX INT4](https://img.shields.io/badge/ONNX-INT4-005CED?style=for-the-badge&logo=onnx)](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6B-ONNX-INT4)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 
 English: [README.md](README.md)
@@ -111,6 +112,20 @@ python audio8_tts_infer.py \
 
 批量命令会生成 `manifest.jsonl` 和 `failures.jsonl`。除非传入 `--overwrite`，否则已有 WAV 会
 被跳过。采样和 codec codes 保存参数可通过 `python audio8_tts_infer.py --help` 查看。
+
+## CPU ONNX Runtime
+
+[`onnx_runtime/`](onnx_runtime/) 提供独立的 CPU 部署方案：Slow/Fast AR 使用
+weight-only INT4，activation 和 KV cache 使用 FP16，codec 使用 FP16。它包含
+命令行推理、本地网页与 HTTP 服务、流式 PCM 输出和参考音频音色注册，运行时不依赖
+PyTorch 或 Transformers。
+
+在 Apple M2 测试环境中，在线模型 session 约占 1 GiB 内存。注册音色前会先释放
+在线 session，再单独加载 codec encoder，从而控制峰值内存。
+
+从
+[Audio8-TTS-Preview-0.6B-ONNX-INT4](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6B-ONNX-INT4)
+下载模型，并参阅 [ONNX Runtime 中文指南](onnx_runtime/README_zh.md)。
 
 ## SGLang Omni 服务部署
 

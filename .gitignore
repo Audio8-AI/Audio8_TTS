@@ -11,6 +11,11 @@ checkpoints/
 prepared_data/
 *.log
 
+/onnx_runtime/model/
+/onnx_runtime/voices/
+/onnx_runtime/outputs/
+/onnx_runtime/.service.pid
+
 # Model weights are distributed separately from the source repository.
 /model/
 /configs/

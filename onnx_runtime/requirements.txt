@@ -1,0 +1,8 @@
+numpy==2.4.3
+onnxruntime==1.24.4
+soundfile==0.13.1
+scipy==1.17.1
+fastapi==0.135.2
+uvicorn==0.42.0
+pydantic>=2.9,<3
+python-multipart==0.0.22
