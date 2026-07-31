@@ -373,3 +373,7 @@ Code and model weights in this repository are released under the
 
 We thank the Fish Audio team for publishing the DualAR architecture used in
 Fish S2 Pro.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Audio8-AI/Audio8_TTS&type=Date)](https://www.star-history.com/#Audio8-AI/Audio8_TTS&Date)
