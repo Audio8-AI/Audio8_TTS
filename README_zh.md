@@ -2,7 +2,7 @@
 
 <img src="assets/20260729-124515.jpeg" alt="Audio8" width="100%">
 
-# audio8_tts Preview
+# Audio8_TTS Preview
 
 **支持多语言语音生成和零样本音色克隆的 0.6B 参数文本转语音模型。**
 
