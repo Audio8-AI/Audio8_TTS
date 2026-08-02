@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import unicodedata
 from collections.abc import Iterable, Iterator, Sequence
 from pathlib import Path
 from typing import Any
@@ -14,14 +15,17 @@ import soundfile as sf
 import torch
 import torch.nn.functional as F
 
-
 NUM_CODEBOOKS = 10
 CODEBOOK_SIZE = 4096
 
 
 def clean_text(value: Any, *, field_name: str = "text") -> str:
-    """Normalize whitespace while preserving the text's language and punctuation."""
-    text = " ".join(str(value).strip().split())
+    """Remove non-linguistic controls and normalize whitespace for inference."""
+    text = "".join(
+        " " if char.isspace() else "" if unicodedata.category(char).startswith("C") else char
+        for char in str(value)
+    )
+    text = " ".join(text.split())
     if not text:
         raise ValueError(f"{field_name} must not be empty")
     return text

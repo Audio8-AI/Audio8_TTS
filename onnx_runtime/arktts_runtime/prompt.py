@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from pathlib import Path
 
 import numpy as np
@@ -8,7 +9,11 @@ from tokenizers import Tokenizer
 
 
 def clean_text(text: str) -> str:
-    return " ".join(str(text).strip().split())
+    value = "".join(
+        " " if char.isspace() else "" if unicodedata.category(char).startswith("C") else char
+        for char in str(text)
+    )
+    return " ".join(value.split())
 
 
 def format_reference_text(text: str) -> str:
