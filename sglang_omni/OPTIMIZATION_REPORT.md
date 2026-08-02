@@ -124,50 +124,6 @@ The server was tested with CUDA Graph capture for batch sizes 1, 2, and 4.
 Ordinary TTS, reference-voice TTS, and four-request dynamic batching completed
 without errors.
 
-## CV3 Evaluation
-
-All evaluations used the optimized service with reference audio, `top_p=0.8`,
-`top_k=50`, and normal sampling. A total of 1,124 files were generated for the
-main run and 124 files for the temperature comparison, with no generation
-failures.
-
-### Temperature 0.1
-
-| Split | Metric | SIM |
-|---|---:|---:|
-| zh | CER 3.281 | 66.18 |
-| en | WER 3.238 | 59.29 |
-| hard_zh | CER 13.233 | 62.65 |
-| hard_en | WER 6.941 | 57.69 |
-
-Result directory:
-
-```text
-/data/yumu/tts_eval/CV3-Eval-main/results/audio8_sglang_optimized_cv3_20260802T0228Z
-```
-
-### Temperature 0.7 hard subsets
-
-| Split | Metric | SIM |
-|---|---:|---:|
-| hard_zh | CER 10.927 | 63.40 |
-| hard_en | WER 8.089 | 57.27 |
-
-Result directory:
-
-```text
-/data/yumu/tts_eval/CV3-Eval-main/results/audio8_sglang_optimized_cv3_temp07_20260802T0251Z
-```
-
-Temperature 0.7 improves hard Chinese CER and similarity. Temperature 0.1 is
-better for hard English WER and similarity. Recommended evaluation defaults:
-
-```text
-Chinese hard set: temperature=0.7
-English hard set: temperature=0.1
-top_p=0.8
-top_k=50
-```
 
 ## Validation Summary
 
