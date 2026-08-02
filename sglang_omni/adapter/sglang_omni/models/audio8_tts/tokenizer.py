@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import inspect
 import re
+import unicodedata
 from dataclasses import dataclass
 from typing import Any
 
@@ -37,7 +38,11 @@ class Audio8TokenizerAdapter:
 
     @staticmethod
     def _clean(text: str) -> str:
-        return " ".join(str(text).strip().split())
+        value = "".join(
+            " " if char.isspace() else "" if unicodedata.category(char).startswith("C") else char
+            for char in str(text)
+        )
+        return " ".join(value.split())
 
     @classmethod
     def _reference_text(cls, text: str) -> str:
