@@ -81,6 +81,9 @@ Face model ID through `--model`.
 
 ## Inference
 
+For best synthesis quality, keep each input within 150 characters. Longer text
+may reduce generation quality; split it into shorter segments when needed.
+
 ### Zero-shot voice cloning
 
 The reference transcript should match the spoken content in the reference
