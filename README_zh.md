@@ -146,6 +146,18 @@ paged attention、动态 batching、Fast AR 固定 KV cache、参考音频编码
 | Transformers | `4.57.1` |
 | 精度 | BF16 |
 
+### 性能
+
+单流 warm latency 在单张 NVIDIA H20 上测试，使用 BF16、CUDA Graph、greedy decoding，
+并生成 128 帧。输出 WAV 时长为 5.85-5.94 秒，不包含冷启动和编译时间。RTF 越低越好。
+
+| SGLang Omni 适配器 | Warm p50 latency | RTF |
+|---|---:|---:|
+| 当前实现 | **0.691 s** | **0.116** |
+
+配置、实现细节和验证结果请参阅
+[SGLang Omni 实现与评测报告](sglang_omni/OPTIMIZATION_REPORT.md)。
+
 ### 安装
 
 在 Audio8 TTS 仓库根目录执行以下命令。示例使用 Python 3.12 和
