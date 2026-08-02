@@ -185,11 +185,33 @@ PORT=8010 \
 ./sglang_omni/scripts/run_server.sh
 ```
 
+默认的 `fa3` attention backend 适用于 H20、H100 等 Hopper GPU。在 RTX 5090 等消费级
+Blackwell GPU 上，应为 SGLang Slow AR 路径选择 FlashInfer；此时适配器会在短序列固定
+KV cache 的 Fast head 中使用 PyTorch SDPA：
+
+```bash
+AUDIO8_TTS_ATTENTION_BACKEND=flashinfer \
+CUDA_VISIBLE_DEVICES=0 \
+SGLANG_OMNI_ROOT="${SGLANG_OMNI_ROOT}" \
+MODEL="${MODEL}" \
+./sglang_omni/scripts/run_server.sh
+```
+
 默认配置使用模型名 `audio8/tts-0.6b`、BF16、单卡、`0.2` 静态显存比例和最多 32 个并发
 请求。主要运行参数包括 `MODEL_NAME`、`AUDIO8_TTS_MEM_FRACTION_STATIC`、
 `AUDIO8_TTS_MAX_RUNNING_REQUESTS`、`AUDIO8_TTS_CHUNKED_PREFILL_SIZE` 和
-`AUDIO8_TTS_DISABLE_CUDA_GRAPH`。如果运行依赖安装在单独的 site-packages 目录中，请设置
-`SGLANG_OMNI_SITE_PACKAGES`。
+`AUDIO8_TTS_DISABLE_CUDA_GRAPH`。`AUDIO8_TTS_ATTENTION_BACKEND` 默认为 `fa3`；消费级
+Blackwell GPU 应设置为 `flashinfer`。如果运行依赖安装在单独的 site-packages 目录中，请
+设置 `SGLANG_OMNI_SITE_PACKAGES`。
+
+### 常见问题
+
+- 如果 `sgl_kernel` 导入失败，请安装系统中提供 `libnuma` 的软件包，例如 `numactl` 或
+  `libnuma1`。
+- CUDA toolkit 的 `bin` 目录需要加入 `PATH`。如果 `deep_gemm` JIT 编译时找不到
+  `nvcc`，还需要将 `CUDA_PATH` 指向 CUDA toolkit 根目录。
+- Transformers 应保持在支持的 4.x 范围（`>=4.57.0,<5`）。Transformers 5.x 可能使该
+  custom-code 模型生成无效的全零 codes。
 
 ### 调用 API
 
