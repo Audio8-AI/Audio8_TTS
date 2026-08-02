@@ -128,9 +128,9 @@ def make_server_args(model_path: str) -> Any:
     server_args.enable_torch_compile = (
         os.getenv("AUDIO8_TTS_ENABLE_TORCH_COMPILE", "0") == "1"
     )
-    server_args.torch_compile_max_bs = int(
-        os.getenv("AUDIO8_TTS_TORCH_COMPILE_MAX_BS", "4")
-    )
+    torch_compile_max_bs = os.getenv("AUDIO8_TTS_TORCH_COMPILE_MAX_BS")
+    if torch_compile_max_bs is not None:
+        server_args.torch_compile_max_bs = int(torch_compile_max_bs)
     attention_backend = os.getenv("AUDIO8_TTS_ATTENTION_BACKEND")
     if attention_backend:
         server_args.attention_backend = attention_backend

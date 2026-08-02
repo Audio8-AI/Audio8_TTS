@@ -193,7 +193,6 @@ CUDA_VISIBLE_DEVICES=0 \
 SGLANG_OMNI_ROOT="${SGLANG_OMNI_ROOT}" \
 MODEL="${MODEL}" \
 AUDIO8_TTS_ENABLE_TORCH_COMPILE=1 \
-AUDIO8_TTS_TORCH_COMPILE_MAX_BS=4 \
 HOST=0.0.0.0 \
 PORT=8010 \
 ./sglang_omni/scripts/run_server.sh
@@ -214,8 +213,8 @@ MODEL="${MODEL}" \
 默认配置使用模型名 `audio8/tts-0.6b`、BF16、单卡、`0.2` 静态显存比例和最多 32 个并发
 请求。主要运行参数包括 `MODEL_NAME`、`AUDIO8_TTS_MEM_FRACTION_STATIC`、
 `AUDIO8_TTS_MAX_RUNNING_REQUESTS`、`AUDIO8_TTS_CHUNKED_PREFILL_SIZE` 和
-`AUDIO8_TTS_DISABLE_CUDA_GRAPH`。开启 Torch compile 后默认覆盖到 batch size 4，可根据
-预期并发和可用显存通过 `AUDIO8_TTS_TORCH_COMPILE_MAX_BS` 调整上限。
+`AUDIO8_TTS_DISABLE_CUDA_GRAPH`。开启 Torch compile 后，适配器沿用 SGLang 原生的 batch
+策略；只有需要明确限制 compile 上限时才设置 `AUDIO8_TTS_TORCH_COMPILE_MAX_BS`。
 `AUDIO8_TTS_ATTENTION_BACKEND` 默认为 `fa3`；消费级 Blackwell GPU 应设置为
 `flashinfer`。如果运行依赖安装在单独的 site-packages 目录中，请设置
 `SGLANG_OMNI_SITE_PACKAGES`。

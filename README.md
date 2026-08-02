@@ -209,7 +209,6 @@ CUDA_VISIBLE_DEVICES=0 \
 SGLANG_OMNI_ROOT="${SGLANG_OMNI_ROOT}" \
 MODEL="${MODEL}" \
 AUDIO8_TTS_ENABLE_TORCH_COMPILE=1 \
-AUDIO8_TTS_TORCH_COMPILE_MAX_BS=4 \
 HOST=0.0.0.0 \
 PORT=8010 \
 ./sglang_omni/scripts/run_server.sh
@@ -232,9 +231,9 @@ The defaults use model name `audio8/tts-0.6b`, BF16, one GPU, a `0.2` static
 memory fraction, and up to 32 running requests. The main runtime controls are
 `MODEL_NAME`, `AUDIO8_TTS_MEM_FRACTION_STATIC`,
 `AUDIO8_TTS_MAX_RUNNING_REQUESTS`, `AUDIO8_TTS_CHUNKED_PREFILL_SIZE`, and
-`AUDIO8_TTS_DISABLE_CUDA_GRAPH`. Torch compilation covers batch sizes through
-4 by default when enabled; adjust `AUDIO8_TTS_TORCH_COMPILE_MAX_BS` for the
-expected concurrency and available memory. `AUDIO8_TTS_ATTENTION_BACKEND`
+`AUDIO8_TTS_DISABLE_CUDA_GRAPH`. When Torch compilation is enabled, the adapter
+uses SGLang's native batch-size policy. Set `AUDIO8_TTS_TORCH_COMPILE_MAX_BS`
+only when an explicit compile limit is needed. `AUDIO8_TTS_ATTENTION_BACKEND`
 defaults to `fa3`; set it to `flashinfer` for consumer Blackwell. Set
 `SGLANG_OMNI_SITE_PACKAGES` when the runtime dependencies are installed in a
 separate site-packages directory.
