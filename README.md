@@ -159,6 +159,21 @@ revision instead of the latest `main` branch.
 | Transformers | `4.57.1` |
 | Precision | BF16 |
 
+### Performance
+
+Warm single-stream latency was measured on one NVIDIA H20 with BF16 weights,
+CUDA Graph, greedy decoding, and 128 generated frames. The output WAV was
+5.85-5.94 seconds long; cold start and compilation time were excluded. Lower
+RTF is better.
+
+| SGLang Omni path | Warm p50 latency | RTF | Relative speed |
+|---|---:|---:|---:|
+| Original adapter | 1.326 s | 0.227 | 1.00x |
+| Optimized adapter | **0.691 s** | **0.116** | **1.92x** |
+
+See the [SGLang Omni optimization report](sglang_omni/OPTIMIZATION_REPORT.md)
+for the configuration, implementation details, and validation results.
+
 ### Install
 
 Run these commands from the Audio8 TTS repository root. The example uses
