@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from typing import Any
 
 from sglang_omni.engines.omni.engine import OmniEngine
@@ -19,6 +20,7 @@ def create_audio8_engine(
     gpu_id: int,
     eos_token_id: int,
     max_new_tokens: int,
+    stream_fn: Callable[[str, Any], None] | None = None,
 ) -> OmniEngine:
     from sglang.srt.models.registry import ModelRegistry
 
@@ -76,6 +78,14 @@ def create_audio8_engine(
         on_retract=lambda request: prefill_manager.add_one_request(request),
     )
     planner = SGLangBatchPlanner(prefill_manager, decode_manager, server_args)
+    def stream_adapter(request: Any, output: Any) -> Any:
+        if output.data is None:
+            return None
+        codes = output.data.codes.clone()
+        if stream_fn is not None:
+            stream_fn(request.request_id, codes)
+        return codes
+
     scheduler = Scheduler(
         batch_planner=planner,
         resource_manager=Audio8ResourceManager(
@@ -88,9 +98,7 @@ def create_audio8_engine(
             eos_token_id=eos_token_id,
             max_new_tokens=max_new_tokens,
         ),
-        stream_adapter=lambda request, output: (
-            None if output.data is None else output.data.codes
-        ),
+        stream_adapter=stream_adapter,
     )
     return OmniEngine(
         scheduler=scheduler,

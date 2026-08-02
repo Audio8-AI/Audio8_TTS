@@ -286,11 +286,21 @@ curl -sS --fail-with-body \
 ```
 
 The reference path must be visible inside the service environment. The current
-adapter supports TP=1, one reference per request, and non-streaming WAV output.
+adapter supports TP=1 and one reference per request. Set `"stream": true` to
+receive SSE audio chunks as they are generated. For the lowest overhead, use
+`"response_format": "pcm"`; each event contains Base64-encoded audio in
+`audio.data`. Streaming defaults to 12 codec frames per chunk, with 128 frames
+of decoder context and a one-frame boundary guard. Override these values with
+`AUDIO8_TTS_STREAM_CHUNK_FRAMES`, `AUDIO8_TTS_STREAM_CONTEXT_FRAMES`, and
+`AUDIO8_TTS_STREAM_GUARD_FRAMES`.
+
 Run the smoke test to verify a deployment:
 
 ```bash
 BASE_URL=http://127.0.0.1:8010 ./sglang_omni/scripts/smoke_test.sh
+python3 ./sglang_omni/scripts/stream_smoke_test.py \
+  --base-url http://127.0.0.1:8010 \
+  --output /tmp/audio8_stream.wav
 ```
 
 To build the adapter into an existing image, append
