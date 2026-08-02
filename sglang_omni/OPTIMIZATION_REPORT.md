@@ -36,13 +36,16 @@ Two environment variables expose SGLang's existing `torch.compile` support:
 
 ```text
 AUDIO8_TTS_ENABLE_TORCH_COMPILE=0|1
-AUDIO8_TTS_TORCH_COMPILE_MAX_BS=1
+AUDIO8_TTS_TORCH_COMPILE_MAX_BS=<optional positive integer>
 ```
 
-Compilation is disabled by default. For single-stream deployment, compile only
-batch size 1 and let batch sizes 2 and above use the existing CUDA Graph path.
-The first startup performs compilation and kernel autotuning; later startups
-reuse `TORCHINDUCTOR_CACHE_DIR`.
+Compilation is disabled by default. When enabled, the adapter preserves
+SGLang's native compile batch-size policy instead of imposing an Audio8-specific
+limit. `AUDIO8_TTS_TORCH_COMPILE_MAX_BS` is an optional override for deployments
+that need to bound compilation time or memory use. Batches outside the compiled
+set continue through SGLang's existing dynamic batching path. The first startup
+performs compilation and kernel autotuning; later startups reuse
+`TORCHINDUCTOR_CACHE_DIR`.
 
 ### Optional static greedy path
 
@@ -89,7 +92,6 @@ AUDIO8_TTS_MEM_FRACTION_STATIC=0.10 \
 AUDIO8_TTS_MAX_RUNNING_REQUESTS=4 \
 AUDIO8_TTS_ATTENTION_BACKEND=fa3 \
 AUDIO8_TTS_ENABLE_TORCH_COMPILE=1 \
-AUDIO8_TTS_TORCH_COMPILE_MAX_BS=1 \
 AUDIO8_TTS_GREEDY_FASTPATH=0 \
 sglang_omni/scripts/run_server.sh
 ```
