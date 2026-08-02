@@ -266,11 +266,20 @@ curl -sS --fail-with-body \
   -o audio8_clone.wav
 ```
 
-参考音频路径必须在服务运行环境中可见。当前适配器支持 TP=1、每个请求一个 reference 和
-非流式 WAV 输出。运行以下 smoke test 可以验证部署：
+参考音频路径必须在服务运行环境中可见。当前适配器支持 TP=1 和每个请求一个 reference。
+设置 `"stream": true` 可在生成过程中接收 SSE 音频分块。使用
+`"response_format": "pcm"` 开销最低，每个事件的 `audio.data` 包含 Base64 编码音频。
+流式输出默认每 12 个 codec frames 生成一块，使用 128 帧 decoder context 和 1 帧边界
+guard。可通过 `AUDIO8_TTS_STREAM_CHUNK_FRAMES`、
+`AUDIO8_TTS_STREAM_CONTEXT_FRAMES` 和 `AUDIO8_TTS_STREAM_GUARD_FRAMES` 调整。
+
+运行以下 smoke test 可以验证部署：
 
 ```bash
 BASE_URL=http://127.0.0.1:8010 ./sglang_omni/scripts/smoke_test.sh
+python3 ./sglang_omni/scripts/stream_smoke_test.py \
+  --base-url http://127.0.0.1:8010 \
+  --output /tmp/audio8_stream.wav
 ```
 
 构建镜像时，请在安装 SGLang Omni 包及其 Python 依赖后追加

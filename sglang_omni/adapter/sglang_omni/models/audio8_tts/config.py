@@ -3,7 +3,13 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from sglang_omni.config import ExecutorConfig, PipelineConfig, RelayConfig, StageConfig
+from sglang_omni.config import (
+    ExecutorConfig,
+    PipelineConfig,
+    RelayConfig,
+    StageConfig,
+)
+from sglang_omni.config.schema import StreamTargetConfig
 
 _PKG = "sglang_omni.models.audio8_tts.pipeline"
 
@@ -31,6 +37,7 @@ class Audio8TTSPipelineConfig(PipelineConfig):
             ),
             get_next=f"{_PKG}.next_stage.tts_engine_next",
             relay=RelayConfig(device="cuda"),
+            stream_to=[StreamTargetConfig(to_stage="vocoder")],
         ),
         StageConfig(
             name="vocoder",

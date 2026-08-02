@@ -5,6 +5,7 @@ import base64
 import importlib.util
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -21,6 +22,9 @@ from sglang_omni.models.audio8_tts.pipeline.engine_io import (
     build_tts_request,
 )
 from sglang_omni.models.audio8_tts.pipeline.state_io import load_state, store_state
+from sglang_omni.models.audio8_tts.pipeline.streaming_vocoder import (
+    Audio8StreamingVocoderExecutor,
+)
 from sglang_omni.models.audio8_tts.tokenizer import Audio8TokenizerAdapter, Reference
 from sglang_omni.proto import StagePayload
 
@@ -195,11 +199,19 @@ def create_sglang_tts_engine_executor(
     )
     server_args = make_server_args(model_path)
     gpu_id = int(device.split(":")[-1]) if ":" in device else 0
+    enqueue_fn_holder: dict[str, Any] = {}
+
+    def enqueue_stream(request_id: str, codes: torch.Tensor) -> None:
+        enqueue_fn = enqueue_fn_holder.get("fn")
+        if enqueue_fn is not None:
+            enqueue_fn(request_id, codes, target_stage="vocoder")
+
     engine = create_audio8_engine(
         server_args,
         gpu_id=gpu_id,
         eos_token_id=config.eos_token_id,
         max_new_tokens=max_new_tokens,
+        stream_fn=enqueue_stream,
     )
 
     def request_builder(payload: StagePayload):
@@ -210,18 +222,24 @@ def create_sglang_tts_engine_executor(
         apply_tts_result(state, result)
         return store_state(payload, state)
 
-    return EngineExecutor(
+    executor = EngineExecutor(
         engine=engine,
         request_builder=request_builder,
         result_builder=result_builder,
     )
+
+    def set_stream_fn(stream_fn: Any) -> None:
+        enqueue_fn_holder["fn"] = stream_fn
+
+    executor.set_stream_fn = set_stream_fn
+    return executor
 
 
 def create_vocoder_executor(
     model_path: str,
     *,
     device: str = "cuda:0",
-) -> PreprocessingExecutor:
+) -> Audio8StreamingVocoderExecutor:
     codec = _load_codec(model_path, device)
     config = _load_config(model_path)
     warmup_codes = torch.zeros(
@@ -233,29 +251,13 @@ def create_vocoder_executor(
     )
     with torch.inference_mode():
         codec.decode(warmup_codes)
-
-    def vocode(payload: StagePayload) -> StagePayload:
-        state = load_state(payload)
-        if state.output_codes is None:
-            raise ValueError("Audio8 generation produced no codec frames")
-        codes = state.output_codes.to(device=device, dtype=torch.long)
-        with torch.inference_mode():
-            audio = codec.decode(codes.unsqueeze(0))[0, 0].float().cpu()
-        state.audio_samples = audio
-        state.sample_rate = codec.sample_rate
-        payload = store_state(payload, state)
-        payload.data.update(
-            {
-                "audio_data": audio.tolist(),
-                "sample_rate": codec.sample_rate,
-                "modality": "audio",
-                "usage": {
-                    "prompt_tokens": state.prompt_tokens,
-                    "completion_tokens": state.completion_tokens,
-                    "total_tokens": state.prompt_tokens + state.completion_tokens,
-                },
-            }
-        )
-        return payload
-
-    return PreprocessingExecutor(vocode)
+    return Audio8StreamingVocoderExecutor(
+        codec,
+        device=device,
+        eos_token_id=config.eos_token_id,
+        num_codebooks=config.num_codebooks,
+        chunk_frames=int(os.getenv("AUDIO8_TTS_STREAM_CHUNK_FRAMES", "12")),
+        context_frames=int(os.getenv("AUDIO8_TTS_STREAM_CONTEXT_FRAMES", "128")),
+        guard_frames=int(os.getenv("AUDIO8_TTS_STREAM_GUARD_FRAMES", "1")),
+        hop_length=config.codec_frame_size,
+    )

@@ -24,6 +24,8 @@ stages:
     get_next: sglang_omni.models.audio8_tts.pipeline.next_stage.tts_engine_next
     relay:
       device: cuda
+    stream_to:
+      - to_stage: vocoder
   - name: vocoder
     num_workers: 1
     executor:
