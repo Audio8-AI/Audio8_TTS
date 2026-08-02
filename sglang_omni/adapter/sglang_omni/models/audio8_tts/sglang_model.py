@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any, Iterable, Optional, Tuple
 
 import torch
@@ -40,16 +41,39 @@ def _audio8_fast_attention_with_cache(
     value: Tensor,
     cache_positions: Tensor,
 ) -> Tensor:
-    return flash_attn_with_kvcache(
-        q=query,
-        k_cache=key_cache,
-        v_cache=value_cache,
-        k=key,
-        v=value,
-        cache_seqlens=cache_positions.contiguous(),
-        causal=True,
-        num_splits=0,
+    attention_backend = os.getenv("AUDIO8_TTS_ATTENTION_BACKEND", "fa3").lower()
+    if attention_backend == "fa3":
+        return flash_attn_with_kvcache(
+            q=query,
+            k_cache=key_cache,
+            v_cache=value_cache,
+            k=key,
+            v=value,
+            cache_seqlens=cache_positions.contiguous(),
+            causal=True,
+            num_splits=0,
+        )
+
+    batch = query.shape[0]
+    positions = cache_positions.to(torch.long)
+    batch_indices = torch.arange(batch, device=query.device)
+    key_cache[batch_indices, positions] = key[:, 0]
+    value_cache[batch_indices, positions] = value[:, 0]
+
+    sequence_length = key_cache.shape[1]
+    valid_prefix = torch.arange(
+        sequence_length,
+        device=query.device,
+    )[None] <= positions[:, None]
+    output = F.scaled_dot_product_attention(
+        query.transpose(1, 2),
+        key_cache.transpose(1, 2),
+        value_cache.transpose(1, 2),
+        attn_mask=valid_prefix[:, None, None],
+        is_causal=False,
+        enable_gqa=True,
     )
+    return output.transpose(1, 2).contiguous()
 
 
 @_audio8_fast_attention_with_cache.register_fake
@@ -219,17 +243,14 @@ class Audio8DecoderLayer(nn.Module):
         return hidden_states, residual
 
 
-class FastRMSNorm(nn.Module):
+class FastRMSNorm(RMSNorm):
     def __init__(self, dim: int, eps: float) -> None:
-        super().__init__()
-        self.eps = float(eps)
-        self.weight = nn.Parameter(torch.ones(dim))
+        super().__init__(dim, eps=eps)
 
     def forward(self, value: Tensor) -> Tensor:
-        normalized = value.float() * torch.rsqrt(
-            value.float().pow(2).mean(-1, keepdim=True) + self.eps
-        )
-        return normalized.to(value.dtype) * self.weight
+        shape = value.shape
+        normalized = super().forward(value.reshape(-1, shape[-1]))
+        return normalized.view(shape)
 
 
 def _rope(length: int, head_dim: int, base: float, device: torch.device) -> Tensor:
@@ -369,9 +390,31 @@ class FastFeedForward(nn.Module):
         self.w1 = nn.Linear(config.fast_dim, config.fast_intermediate_size, bias=False)
         self.w2 = nn.Linear(config.fast_intermediate_size, config.fast_dim, bias=False)
         self.w3 = nn.Linear(config.fast_dim, config.fast_intermediate_size, bias=False)
+        self.gate_up: nn.Linear | None = None
+
+    def fuse_gate_up(self) -> None:
+        if self.gate_up is not None:
+            return
+        gate_up = nn.Linear(
+            self.w1.in_features,
+            self.w1.out_features * 2,
+            bias=False,
+            device=self.w1.weight.device,
+            dtype=self.w1.weight.dtype,
+        )
+        with torch.no_grad():
+            gate_up.weight.copy_(torch.cat((self.w1.weight, self.w3.weight), dim=0))
+        self.gate_up = gate_up
+        del self.w1
+        del self.w3
 
     def forward(self, value: Tensor) -> Tensor:
-        return self.w2(F.silu(self.w1(value)) * self.w3(value))
+        if self.gate_up is None:
+            gate = self.w1(value)
+            up = self.w3(value)
+        else:
+            gate, up = self.gate_up(value).chunk(2, dim=-1)
+        return self.w2(F.silu(gate) * up)
 
 
 class FastDecoderLayer(nn.Module):
@@ -535,6 +578,7 @@ class Audio8SGLangModel(nn.Module):
             persistent=False,
         )
         for layer in self.fast_layers:
+            layer.feed_forward.fuse_gate_up()
             layer.attention.setup_audio8_cache(
                 max_batch_size,
                 config.num_codebooks + 1,
@@ -562,6 +606,8 @@ class Audio8SGLangModel(nn.Module):
         top_k: Tensor,
         do_sample: Tensor,
     ) -> Tensor:
+        if os.getenv("AUDIO8_TTS_GREEDY_FASTPATH", "0") == "1":
+            return scores.argmax(dim=-1)
         sorted_scores, sorted_indices = torch.sort(scores, descending=True, dim=-1)
         cumulative = torch.softmax(sorted_scores, dim=-1).cumsum(dim=-1)
         positions = torch.arange(scores.shape[-1], device=scores.device)[None]
@@ -578,8 +624,8 @@ class Audio8SGLangModel(nn.Module):
 
     def _sample_semantic(self, logits: Tensor) -> Tensor:
         batch = logits.shape[0]
-        scores = logits.float() + self._semantic_bias
-        normal = self._sample(
+        scores = logits.float()
+        normal_index = self._sample(
             scores,
             self._temperature[:batch],
             self._top_p[:batch],
@@ -590,12 +636,23 @@ class Audio8SGLangModel(nn.Module):
             self._temperature[:batch], self.config.ras_temperature
         )
         ras_top_p = torch.full_like(self._top_p[:batch], self.config.ras_top_p)
-        high = self._sample(
+        high_index = self._sample(
             scores,
             ras_temperature,
             ras_top_p,
             self._top_k[:batch],
             self._do_sample[:batch],
+        )
+        semantic_begin = self.config.semantic_begin_id
+        normal = torch.where(
+            normal_index == 0,
+            self.config.eos_token_id,
+            semantic_begin + normal_index - 1,
+        )
+        high = torch.where(
+            high_index == 0,
+            self.config.eos_token_id,
+            semantic_begin + high_index - 1,
         )
         repeated = (
             (self._previous_semantic[:batch] == normal[:, None])
@@ -605,6 +662,22 @@ class Audio8SGLangModel(nn.Module):
             normal <= self.config.semantic_end_id
         )
         return torch.where(repeated & is_semantic, high, normal)
+
+    def _semantic_logits(self, hidden_states: Tensor) -> Tensor:
+        weight = self.embed_tokens.weight
+        semantic_weight = weight[
+            self.config.semantic_begin_id : self.config.semantic_end_id + 1
+        ]
+        eos_weight = weight[
+            self.config.eos_token_id : self.config.eos_token_id + 1
+        ]
+        return torch.cat(
+            (
+                F.linear(hidden_states, eos_weight),
+                F.linear(hidden_states, semantic_weight),
+            ),
+            dim=-1,
+        )
 
     def _clear_audio8_fast_caches(self) -> None:
         for layer in self.fast_layers:
@@ -673,9 +746,11 @@ class Audio8SGLangModel(nn.Module):
         if forward_batch.forward_mode.is_extend():
             last_index = torch.cumsum(forward_batch.extend_seq_lens, dim=0) - 1
             hidden_states = hidden_states[last_index]
-        logits = F.linear(hidden_states, self.embed_tokens.weight)
         if self._decode_ready:
+            logits = self._semantic_logits(hidden_states)
             self._decode_codebooks(logits, hidden_states)
+        else:
+            logits = F.linear(hidden_states, self.embed_tokens.weight)
         return LogitsProcessorOutput(
             next_token_logits=logits,
             hidden_states=hidden_states,

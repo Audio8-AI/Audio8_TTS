@@ -117,4 +117,13 @@ def make_server_args(model_path: str) -> Any:
         "disable_" + "cuda_graph",
         os.getenv("AUDIO8_TTS_DISABLE_CUDA_GRAPH", "0") == "1",
     )
+    server_args.enable_torch_compile = (
+        os.getenv("AUDIO8_TTS_ENABLE_TORCH_COMPILE", "0") == "1"
+    )
+    server_args.torch_compile_max_bs = int(
+        os.getenv("AUDIO8_TTS_TORCH_COMPILE_MAX_BS", "1")
+    )
+    attention_backend = os.getenv("AUDIO8_TTS_ATTENTION_BACKEND")
+    if attention_backend:
+        server_args.attention_backend = attention_backend
     return server_args
