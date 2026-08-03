@@ -23,6 +23,7 @@ from sglang_omni.vendor.sglang.layers import (
     VocabParallelEmbedding,
     get_rope,
 )
+from sglang_omni.models.audio8_tts.attention_backend import resolve_attention_backend
 from sglang_omni.vendor.sglang.models import apply_qk_norm
 from sglang_omni.vendor.sglang.utils import make_layers
 
@@ -41,7 +42,7 @@ def _audio8_fast_attention_with_cache(
     value: Tensor,
     cache_positions: Tensor,
 ) -> Tensor:
-    attention_backend = os.getenv("AUDIO8_TTS_ATTENTION_BACKEND", "fa3").lower()
+    attention_backend = resolve_attention_backend()
     if attention_backend == "fa3":
         return flash_attn_with_kvcache(
             q=query,

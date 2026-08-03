@@ -201,9 +201,12 @@ PORT=8010 \
 ./sglang_omni/scripts/run_server.sh
 ```
 
-默认的 `fa3` attention backend 适用于 H20、H100 等 Hopper GPU。在 RTX 5090 等消费级
-Blackwell GPU 上，应为 SGLang Slow AR 路径选择 FlashInfer；此时适配器会在短序列固定
-KV cache 的 Fast head 中使用 PyTorch SDPA：
+默认的 `fa3` attention backend 适用于 H20、H100 等 Hopper GPU。RTX 5090 等消费级
+Blackwell GPU 的计算能力为 `(12, 0)`，没有对应的 FA3 kernel image，适配器会自动识别
+并为 SGLang Slow AR 路径选择 FlashInfer；此时短序列固定 KV cache 的 Fast head 会使用
+PyTorch SDPA。无需额外配置。
+
+在任意 GPU 上显式设置该环境变量仍会覆盖自动检测结果：
 
 ```bash
 AUDIO8_TTS_ATTENTION_BACKEND=flashinfer \
@@ -218,8 +221,9 @@ MODEL="${MODEL}" \
 `AUDIO8_TTS_MAX_RUNNING_REQUESTS`、`AUDIO8_TTS_CHUNKED_PREFILL_SIZE` 和
 `AUDIO8_TTS_DISABLE_CUDA_GRAPH`。开启 Torch compile 后，适配器沿用 SGLang 原生的 batch
 策略；只有需要明确限制 compile 上限时才设置 `AUDIO8_TTS_TORCH_COMPILE_MAX_BS`。
-`AUDIO8_TTS_ATTENTION_BACKEND` 默认为 `fa3`；消费级 Blackwell GPU 应设置为
-`flashinfer`。如果运行依赖安装在单独的 site-packages 目录中，请设置
+`AUDIO8_TTS_ATTENTION_BACKEND` 默认为 `fa3`；在没有 FA3 kernel image 的 GPU（如消费级
+Blackwell）上默认为 `flashinfer`，显式设置可覆盖。如果运行依赖安装在单独的
+site-packages 目录中，请设置
 `SGLANG_OMNI_SITE_PACKAGES`。
 
 ### 常见问题
