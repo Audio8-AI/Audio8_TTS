@@ -77,6 +77,13 @@ and uses SDPA with an explicit valid-prefix mask and GQA. Shapes remain static
 for CUDA Graph capture. This avoids the Hopper-only FA3 custom op on `sm_120`
 without changing the Hopper path.
 
+When the variable is unset, the backend is resolved by
+`models/audio8_tts/attention_backend.py`. Devices whose compute capability has
+no FA3 kernel image — currently `(12, 0)`, consumer Blackwell — default to
+`flashinfer`; every other device keeps `fa3`. The probe is cached and runs once
+per process, and an explicit `AUDIO8_TTS_ATTENTION_BACKEND` always takes
+precedence, so Hopper deployments are unaffected.
+
 For consumer Blackwell deployment, `sgl_kernel` also requires the system
 `libnuma` library. The CUDA toolkit `bin` directory must be on `PATH`, and
 `CUDA_PATH` may be required by `deep_gemm` JIT. Transformers must remain in the

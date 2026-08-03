@@ -218,9 +218,12 @@ PORT=8010 \
 ```
 
 The default `fa3` attention backend is intended for Hopper GPUs such as H20
-and H100. On consumer Blackwell GPUs such as RTX 5090, select FlashInfer for
-the SGLang slow-AR path; the adapter then uses PyTorch SDPA for the short
-fixed-cache fast head:
+and H100. Consumer Blackwell GPUs such as RTX 5090 report compute capability
+`(12, 0)` and have no FA3 kernel image, so the adapter detects them and selects
+FlashInfer for the SGLang slow-AR path automatically; the short fixed-cache
+fast head then uses PyTorch SDPA. No configuration is required.
+
+Setting the variable explicitly still overrides the detection on any GPU:
 
 ```bash
 AUDIO8_TTS_ATTENTION_BACKEND=flashinfer \
@@ -237,7 +240,8 @@ memory fraction, and up to 32 running requests. The main runtime controls are
 `AUDIO8_TTS_DISABLE_CUDA_GRAPH`. When Torch compilation is enabled, the adapter
 uses SGLang's native batch-size policy. Set `AUDIO8_TTS_TORCH_COMPILE_MAX_BS`
 only when an explicit compile limit is needed. `AUDIO8_TTS_ATTENTION_BACKEND`
-defaults to `fa3`; set it to `flashinfer` for consumer Blackwell. Set
+defaults to `fa3`, except on GPUs with no FA3 kernel image such as consumer
+Blackwell, where it defaults to `flashinfer`; set it explicitly to override. Set
 `SGLANG_OMNI_SITE_PACKAGES` when the runtime dependencies are installed in a
 separate site-packages directory.
 

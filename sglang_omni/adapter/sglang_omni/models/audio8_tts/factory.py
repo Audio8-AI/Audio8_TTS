@@ -7,6 +7,11 @@ from typing import Any
 
 from sglang_omni.engines.omni.engine import OmniEngine
 from sglang_omni.engines.omni.scheduler import Scheduler
+from sglang_omni.models.audio8_tts.attention_backend import (
+    ATTENTION_BACKEND_ENV,
+    PORTABLE_ATTENTION_BACKEND,
+    fa3_kernels_available,
+)
 from sglang_omni.models.audio8_tts.runtime.audio8_sglang_ar import (
     Audio8IterationController,
     Audio8ModelRunner,
@@ -131,7 +136,11 @@ def make_server_args(model_path: str) -> Any:
     torch_compile_max_bs = os.getenv("AUDIO8_TTS_TORCH_COMPILE_MAX_BS")
     if torch_compile_max_bs is not None:
         server_args.torch_compile_max_bs = int(torch_compile_max_bs)
-    attention_backend = os.getenv("AUDIO8_TTS_ATTENTION_BACKEND")
+    attention_backend = os.getenv(ATTENTION_BACKEND_ENV)
+    if attention_backend is None and not fa3_kernels_available():
+        # No FA3 kernel image on this device; pick the portable backend rather
+        # than leaving SGLang to fail at kernel launch.
+        attention_backend = PORTABLE_ATTENTION_BACKEND
     if attention_backend:
         server_args.attention_backend = attention_backend
     return server_args
