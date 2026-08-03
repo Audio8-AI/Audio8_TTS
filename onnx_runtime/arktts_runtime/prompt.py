@@ -7,13 +7,36 @@ from pathlib import Path
 import numpy as np
 from tokenizers import Tokenizer
 
+_CJK_RANGES = (
+    "\u1100-\u11ff\u2e80-\u2fdf\u3000-\u303f\u3040-\u30ff\u3100-\u31ff"
+    "\u3400-\u4dbf\u4e00-\u9fff\ua960-\ua97f\uac00-\ud7a3\ud7b0-\ud7ff\uf900-\ufaff"
+    "\ufe30-\ufe4f\uff01-\uff9f\U00020000-\U0002fa1f"
+)
+_CJK_CHARACTER_RE = re.compile(rf"[{_CJK_RANGES}]")
+_LINE_BREAK_RE = re.compile(r"[\r\n\v\f\x1c-\x1e\x85\u2028\u2029]")
+
+
+def _normalize_whitespace(text: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        left = text[match.start() - 1] if match.start() else ""
+        right = text[match.end()] if match.end() < len(text) else ""
+        if (
+            _LINE_BREAK_RE.search(match.group())
+            and _CJK_CHARACTER_RE.fullmatch(left)
+            and _CJK_CHARACTER_RE.fullmatch(right)
+        ):
+            return ""
+        return " "
+
+    return re.sub(r"\s+", replace, text).strip()
+
 
 def clean_text(text: str) -> str:
     value = "".join(
-        " " if char.isspace() else "" if unicodedata.category(char).startswith("C") else char
+        char if char.isspace() else "" if unicodedata.category(char).startswith("C") else char
         for char in str(text)
     )
-    return " ".join(value.split())
+    return _normalize_whitespace(value)
 
 
 def format_reference_text(text: str) -> str:
