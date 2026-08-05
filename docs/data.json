@@ -659,15 +659,15 @@
       "language": "Chinese",
       "nativeName": "中文",
       "targetLanguage": "zh-CN",
-      "targetText": "午后的阳光穿过窗帘，安静地落在书桌和刚泡好的茶上。",
+      "targetText": "大家好，语音合成是一件有趣的事情，我很高兴可以为你们展示多语言支持！",
       "order": 1,
       "reference": {
-        "language": "en",
-        "text": "The revised schedule is on your desk. Please confirm the delivery dates before the afternoon meeting begins.",
-        "audio": "audio/multilingual/reference/multilingual_zh_01.mp3?v=20260728-small-codec-r2"
+        "language": "zh",
+        "text": "有人说啊，我们每天呢会和三百个陌生人擦肩而过。今天我想做一个特别的实验：当你收到来自陌生人的善意的时候，会有什么样的反应呢？",
+        "audio": "audio/multilingual/reference/multilingual_zh_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_zh_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_zh_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -675,15 +675,15 @@
       "language": "Dutch",
       "nativeName": "Nederlands",
       "targetLanguage": "nl-NL",
-      "targetText": "Vanmorgen fietste ik langs de rivier, terwijl de stad langzaam wakker werd.",
+      "targetText": "Hallo allemaal! Spraaksynthese is erg interessant, en ik laat jullie graag onze meertalige ondersteuning zien!",
       "order": 2,
       "reference": {
-        "language": "en",
-        "text": "I have walked this road for many years, and every bend still brings back a different memory.",
-        "audio": "audio/multilingual/reference/multilingual_nl_01.mp3?v=20260728-small-codec-r2"
+        "language": "nl",
+        "text": "Goedemiddag, dit is het NOS Journaal in Makkelijke Taal en ik ben Jeroen Tjepkema. In dit journaal vertellen we dat veel mensen schade hebben aan hun nieren.",
+        "audio": "audio/multilingual/reference/multilingual_nl_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_nl_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_nl_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -691,15 +691,15 @@
       "language": "English",
       "nativeName": "English",
       "targetLanguage": "en-US",
-      "targetText": "The library was almost empty, so she chose a seat beside the window and began to read.",
+      "targetText": "Hello everyone! Speech synthesis is fascinating, and I'm delighted to show you our multilingual support!",
       "order": 3,
       "reference": {
         "language": "en",
         "text": "The room is quiet now. Take a slow breath, close your eyes, and let the day fade gently away.",
-        "audio": "audio/multilingual/reference/multilingual_en_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/reference/multilingual_en_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_en_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_en_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -707,15 +707,15 @@
       "language": "French",
       "nativeName": "Français",
       "targetLanguage": "fr-FR",
-      "targetText": "Après la pluie, les rues de Paris brillaient sous la lumière douce du soir.",
+      "targetText": "Bonjour à toutes et à tous ! La synthèse vocale est passionnante, et c'est avec grand plaisir que je vous présente notre prise en charge multilingue !",
       "order": 4,
       "reference": {
-        "language": "en",
-        "text": "We finally received the good news this morning, and everyone in the office stopped to celebrate together.",
-        "audio": "audio/multilingual/reference/multilingual_fr_01.mp3?v=20260728-small-codec-r2"
+        "language": "fr",
+        "text": "Françaises, Français, mes chers compatriotes, je m'adresse à vous ce soir en raison de la situation internationale et de ses conséquences pour notre pays et pour l'Europe.",
+        "audio": "audio/multilingual/reference/multilingual_fr_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_fr_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_fr_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -723,15 +723,15 @@
       "language": "German",
       "nativeName": "Deutsch",
       "targetLanguage": "de-DE",
-      "targetText": "Am frühen Morgen öffnete der Bäcker die Tür, und der Duft von frischem Brot erfüllte die Straße.",
+      "targetText": "Hallo zusammen! Sprachsynthese ist eine spannende Sache, und ich freue mich sehr, euch unsere mehrsprachige Unterstützung präsentieren zu können!",
       "order": 5,
       "reference": {
-        "language": "en",
-        "text": "The museum opens at nine tomorrow morning, and the first guided tour begins beside the main entrance.",
-        "audio": "audio/multilingual/reference/multilingual_de_01.mp3?v=20260728-small-codec-r2"
+        "language": "de",
+        "text": "Willkommen zur Tagesschau in einfacher Sprache. Ich bin Susanne Stichler und das sind unsere Nachrichten.",
+        "audio": "audio/multilingual/reference/multilingual_de_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_de_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_de_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -739,15 +739,15 @@
       "language": "Italian",
       "nativeName": "Italiano",
       "targetLanguage": "it-IT",
-      "targetText": "Questa sera ceneremo in terrazza, se il vento rimane calmo e il cielo sereno.",
+      "targetText": "Ciao a tutti! La sintesi vocale è davvero interessante e sono molto felice di potervi mostrare il nostro supporto multilingue!",
       "order": 6,
       "reference": {
-        "language": "en",
-        "text": "You should have seen the garden after the rain; every flower was shining, and the whole place smelled fresh.",
-        "audio": "audio/multilingual/reference/multilingual_it_01.mp3?v=20260728-small-codec-r2"
+        "language": "it",
+        "text": "Ma poi quello che ci dicono è che i soldi non comprano la felicità e io credo che non sia vero. E anzi mi chiedo come fa a non esserci ancora chiarezza su un argomento così importante.",
+        "audio": "audio/multilingual/reference/multilingual_it_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_it_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_it_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -755,15 +755,15 @@
       "language": "Japanese",
       "nativeName": "日本語",
       "targetLanguage": "ja-JP",
-      "targetText": "週末は家族と海辺を散歩して、夕日を見ながらゆっくり話しました。",
+      "targetText": "皆さん、こんにちは。音声合成は面白いものです。皆さんに多言語対応をご紹介できて、とても嬉しいです！",
       "order": 7,
       "reference": {
         "language": "ja",
         "text": "今日は少し寒いけれど、約束どおり駅前で会いましょう。温かい飲み物も忘れずに持ってきてね。",
-        "audio": "audio/multilingual/reference/multilingual_ja_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/reference/multilingual_ja_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_ja_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_ja_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -771,15 +771,15 @@
       "language": "Korean",
       "nativeName": "한국어",
       "targetLanguage": "ko-KR",
-      "targetText": "비가 그친 뒤에 우리는 공원을 천천히 걸으며 맑아진 하늘을 바라보았습니다.",
+      "targetText": "안녕하세요, 여러분! 음성 합성은 정말 흥미로운 일이며, 여러분께 다국어 지원을 보여 드릴 수 있어 매우 기쁩니다!",
       "order": 8,
       "reference": {
-        "language": "en",
-        "text": "With only seconds left, he takes the pass, turns past the defender, and sends the ball into the top corner.",
-        "audio": "audio/multilingual/reference/multilingual_ko_01.mp3?v=20260728-small-codec-r2"
+        "language": "ko",
+        "text": "이번 시간에는 첫 번째 주제인 한국의 상징에 대해 배워볼 건데요. 세계는 약 237개의 국가로 이루어져 있고",
+        "audio": "audio/multilingual/reference/multilingual_ko_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_ko_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_ko_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -787,15 +787,15 @@
       "language": "Polish",
       "nativeName": "Polski",
       "targetLanguage": "pl-PL",
-      "targetText": "Po południu spotkamy się w małej kawiarni niedaleko starego rynku.",
+      "targetText": "Witam wszystkich! Synteza mowy to fascynujące zagadnienie i bardzo się cieszę, że mogę zaprezentować wam obsługę wielu języków!",
       "order": 9,
       "reference": {
-        "language": "en",
-        "text": "Long before this village had a name, travelers followed the river north and rested beneath these ancient trees.",
-        "audio": "audio/multilingual/reference/multilingual_pl_01.mp3?v=20260728-small-codec-r2"
+        "language": "pl",
+        "text": "Ale co by było, gdyby zamiast tego zadać banalne pytanie: drogi przyjacielu, a jakie kwiaty najbardziej lubi twoja żona?",
+        "audio": "audio/multilingual/reference/multilingual_pl_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_pl_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_pl_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -803,15 +803,15 @@
       "language": "Spanish",
       "nativeName": "Español",
       "targetLanguage": "es-ES",
-      "targetText": "Cuando terminó la reunión, salimos al balcón para disfrutar del aire fresco.",
+      "targetText": "¡Hola a todos! La síntesis de voz es algo fascinante, y me alegra mucho poder mostrarles nuestra compatibilidad con varios idiomas.",
       "order": 10,
       "reference": {
-        "language": "en",
-        "text": "We finally received the good news this morning, and everyone in the office stopped to celebrate together.",
-        "audio": "audio/multilingual/reference/multilingual_es_01.mp3?v=20260728-small-codec-r2"
+        "language": "es",
+        "text": "Bueno, yo pienso que eso sería bueno, ya que así tendremos más medicamentos, tendremos más posibilidades para los pacientes.",
+        "audio": "audio/multilingual/reference/multilingual_es_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_es_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_es_01.mp3?v=20260805-native-ref-r1"
       }
     },
     {
@@ -819,15 +819,15 @@
       "language": "Cantonese",
       "nativeName": "粤语",
       "targetLanguage": "yue-Hant-HK",
-      "targetText": "嘩，前日真係好好天喎！我哋飲完早茶就出去行吓，跟住同朋友食咗個叉燒飯，大家一路傾偈一路行街，玩到夜晚先返屋企。",
+      "targetText": "大家好！語音合成係一件好有趣嘅事，我好高興可以為大家展示多語言支援！",
       "order": 11,
       "reference": {
-        "language": "zh",
-        "text": "沿着这条古老的河流，人们修建村庄和桥梁，也留下了许多代代相传的故事。",
-        "audio": "audio/multilingual/reference/multilingual_yue_01.mp3?v=20260728-small-codec-r2"
+        "language": "yue",
+        "text": "李家超第四份施政報告主題係深化改革、心繫民生、發揮優勢、同創未來。綠色嘅封面寓意活力同埋政策延續，發展經濟同改善民生係今年施政報告嘅兩大主軸。",
+        "audio": "audio/multilingual/reference/multilingual_yue_01.mp3?v=20260805-native-ref-r1"
       },
       "output": {
-        "audio": "audio/multilingual/output/multilingual_yue_01.mp3?v=20260728-small-codec-r2"
+        "audio": "audio/multilingual/output/multilingual_yue_01.mp3?v=20260805-native-ref-r1"
       }
     }
   ]
