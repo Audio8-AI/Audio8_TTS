@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from sglang_omni.executors import Executor
-from sglang_omni.models.audio8_tts.pipeline.state_io import load_state
+from sglang_omni.models.audio8_tts.pipeline.state_io import load_state, store_state
 from sglang_omni.proto import StagePayload
 
 
@@ -46,9 +46,39 @@ class Audio8StreamingVocoderExecutor(Executor):
         if request_id in self._aborted:
             return
         self._output_queues[request_id] = asyncio.Queue()
-        task = asyncio.create_task(self._run_request(payload))
+        if self._stream_queue is None:
+            task = asyncio.create_task(self._run_batch(payload))
+        else:
+            task = asyncio.create_task(self._run_request(payload))
         self._tasks[request_id] = task
         task.add_done_callback(lambda _task: self._done.put_nowait(request_id))
+
+    async def _run_batch(self, payload: StagePayload) -> StagePayload:
+        """Non-streaming decode: decode the complete output_codes at once."""
+        state = load_state(payload)
+        codes = state.output_codes
+        if codes is None:
+            raise ValueError("Audio8 generation produced no codec frames")
+        codes = torch.as_tensor(codes, device=self._device, dtype=torch.long)
+        if codes.ndim != 2 or codes.shape[0] != self._num_codebooks or codes.shape[1] == 0:
+            raise ValueError(
+                f"unexpected Audio8 codes shape {tuple(codes.shape)}, "
+                f"expected [{self._num_codebooks}, T>0]"
+            )
+        with torch.inference_mode():
+            audio = self._codec.decode(codes.unsqueeze(0))[0, 0]
+        arr = audio.detach().float().cpu().numpy().astype(np.float32, copy=False)
+        self._output_queues.pop(payload.request_id, None)
+        payload.data.update(
+            {
+                "audio_waveform": arr.tobytes(),
+                "audio_waveform_shape": list(arr.shape),
+                "audio_waveform_dtype": "float32",
+                "sample_rate": self._sample_rate,
+                "modality": "audio",
+            }
+        )
+        return payload
 
     async def get_result(self) -> StagePayload:
         while True:
@@ -123,7 +153,8 @@ class Audio8StreamingVocoderExecutor(Executor):
                     await output_queue.put(self._audio_payload(chunk))
 
             if not frames:
-                raise ValueError("Audio8 generation produced no codec frames")
+                await output_queue.put(None)
+                return store_state(payload, state)
 
             tail, absolute_start = await self._decode_stream_window(frames)
             begin = max(0, emitted_samples - absolute_start)

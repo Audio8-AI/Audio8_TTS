@@ -146,6 +146,8 @@ def create_preprocessing_executor(
     def preprocess(payload: StagePayload) -> StagePayload:
         inputs = payload.request.inputs or {}
         params = payload.request.params or {}
+        metadata = payload.request.metadata or {}
+        tts_params = metadata.get("tts_params") or {}
         if isinstance(inputs, str):
             inputs = {"text": inputs}
         references: list[Reference] | None = None
@@ -178,6 +180,7 @@ def create_preprocessing_executor(
             top_k=int(params.get("top_k", 50)),
             do_sample=float(params.get("temperature", 0.8)) > 0,
             sample_rate=config.codec_sample_rate,
+            response_format=str(tts_params.get("response_format", "wav")).lower(),
         )
         return store_state(payload, state)
 
@@ -200,11 +203,19 @@ def create_sglang_tts_engine_executor(
     server_args = make_server_args(model_path)
     gpu_id = int(device.split(":")[-1]) if ":" in device else 0
     enqueue_fn_holder: dict[str, Any] = {}
+    codes_only_ids: set[str] = set()
+    stream_enabled = os.getenv("AUDIO8_TTS_STREAM_ENABLED", "0") == "1"
 
     def enqueue_stream(request_id: str, codes: torch.Tensor) -> None:
+        if not stream_enabled:
+            return
+        if request_id in codes_only_ids:
+            return
         enqueue_fn = enqueue_fn_holder.get("fn")
         if enqueue_fn is not None:
-            enqueue_fn(request_id, codes, target_stage="vocoder")
+            # The model overwrites its persistent output buffer on the next
+            # decode step, so the vocoder must receive its own copy.
+            enqueue_fn(request_id, codes.clone(), target_stage="vocoder")
 
     engine = create_audio8_engine(
         server_args,
@@ -215,17 +226,22 @@ def create_sglang_tts_engine_executor(
     )
 
     def request_builder(payload: StagePayload):
-        return build_tts_request(load_state(payload), tokenizer, payload.request_id)
+        state = load_state(payload)
+        if state.response_format in {"codes", "codec", "npy"}:
+            codes_only_ids.add(payload.request_id)
+        return build_tts_request(state, tokenizer, payload.request_id)
 
     def result_builder(payload: StagePayload, result: Any) -> StagePayload:
         state = load_state(payload)
         apply_tts_result(state, result)
+        codes_only_ids.discard(payload.request_id)
         return store_state(payload, state)
 
     executor = EngineExecutor(
         engine=engine,
         request_builder=request_builder,
         result_builder=result_builder,
+        stream_enabled=stream_enabled,
     )
 
     def set_stream_fn(stream_fn: Any) -> None:

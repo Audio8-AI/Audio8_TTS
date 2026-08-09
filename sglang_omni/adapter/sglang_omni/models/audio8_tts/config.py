@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
-from typing import ClassVar
+import os
+from typing import Any, ClassVar
 
 from sglang_omni.config import (
     ExecutorConfig,
@@ -49,6 +50,13 @@ class Audio8TTSPipelineConfig(PipelineConfig):
             relay=RelayConfig(device="cpu"),
         ),
     ]
+
+    def model_post_init(self, __context: Any = None) -> None:
+        super().model_post_init(__context)
+        if os.getenv("AUDIO8_TTS_STREAM_ENABLED", "0") != "1":
+            # Default to non-streaming: do not wire per-step vocoder queues.
+            for stage in self.stages:
+                stage.stream_to = []
 
 
 EntryClass = Audio8TTSPipelineConfig

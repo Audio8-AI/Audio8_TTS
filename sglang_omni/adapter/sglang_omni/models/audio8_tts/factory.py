@@ -86,7 +86,7 @@ def create_audio8_engine(
     def stream_adapter(request: Any, output: Any) -> Any:
         if output.data is None:
             return None
-        codes = output.data.codes.clone()
+        codes = output.data.codes
         if stream_fn is not None:
             stream_fn(request.request_id, codes)
         return codes
@@ -115,14 +115,22 @@ def create_audio8_engine(
 def make_server_args(model_path: str) -> Any:
     from sglang.srt.server_args import ServerArgs
 
+    max_running_requests = int(
+        os.getenv("AUDIO8_TTS_MAX_RUNNING_REQUESTS", "32")
+    )
+    max_total_tokens_env = os.getenv("AUDIO8_TTS_MAX_TOTAL_NUM_TOKENS")
+    max_total_tokens = (
+        int(max_total_tokens_env) if max_total_tokens_env is not None else None
+    )
     server_args = ServerArgs(
         model_path=model_path,
         tp_size=1,
         dtype="bfloat16",
         trust_remote_code=True,
         mem_fraction_static=float(os.getenv("AUDIO8_TTS_MEM_FRACTION_STATIC", "0.2")),
-        chunked_prefill_size=int(os.getenv("AUDIO8_TTS_CHUNKED_PREFILL_SIZE", "2048")),
-        max_running_requests=int(os.getenv("AUDIO8_TTS_MAX_RUNNING_REQUESTS", "32")),
+        max_total_tokens=max_total_tokens,
+        chunked_prefill_size=int(os.getenv("AUDIO8_TTS_CHUNKED_PREFILL_SIZE", "8192")),
+        max_running_requests=max_running_requests,
         disable_radix_cache=os.getenv("AUDIO8_TTS_DISABLE_RADIX_CACHE", "1") == "1",
     )
     setattr(

@@ -283,6 +283,11 @@ curl -sS --fail-with-body \
 guard。可通过 `AUDIO8_TTS_STREAM_CHUNK_FRAMES`、
 `AUDIO8_TTS_STREAM_CONTEXT_FRAMES` 和 `AUDIO8_TTS_STREAM_GUARD_FRAMES` 调整。
 
+流式输出是服务端可选项：启动服务时设置 `AUDIO8_TTS_STREAM_ENABLED=1` 才会启用 SSE
+流式；默认关闭，请求会在生成完成后一次性返回完整音频（请求中的 `"stream": true`
+此时会被忽略）。默认非流式以获得更高的吞吐和稳定的显存占用。
+`response_format` 为 `codes`/`codec`/`npy` 时始终非流式，直接返回 codec codes。
+
 运行以下 smoke test 可以验证部署：
 
 ```bash

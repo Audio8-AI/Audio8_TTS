@@ -24,6 +24,7 @@ class Audio8TTSState:
     completion_tokens: int = 0
     audio_samples: Any | None = None
     sample_rate: int = 44100
+    response_format: str = "wav"
 
     @staticmethod
     def _to_list(value: Any) -> Any:
@@ -50,6 +51,7 @@ class Audio8TTSState:
             "completion_tokens": self.completion_tokens,
             "audio_samples": self._to_list(self.audio_samples),
             "sample_rate": self.sample_rate,
+            "response_format": self.response_format,
         }
         return {key: value for key, value in data.items() if value is not None}
 
@@ -79,4 +81,5 @@ class Audio8TTSState:
             completion_tokens=int(data.get("completion_tokens", 0)),
             audio_samples=data.get("audio_samples"),
             sample_rate=int(data.get("sample_rate", 44100)),
+            response_format=str(data.get("response_format", "wav")),
         )

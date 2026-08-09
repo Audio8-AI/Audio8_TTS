@@ -722,6 +722,7 @@ class Audio8SGLangModel(nn.Module):
             self._output_codes[:batch, position + 1] = current
         self._output_semantic_ids[:batch] = semantic
 
+    @torch.inference_mode()
     def forward(
         self,
         input_ids: Tensor,
