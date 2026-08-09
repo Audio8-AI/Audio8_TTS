@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -21,6 +22,8 @@ from sglang_omni.engines.omni.types import (
 
 if TYPE_CHECKING:
     from sglang_omni.engines.ar.sglang_backend.model_worker import ModelWorker
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -73,6 +76,8 @@ class Audio8IterationController:
         data: Audio8SGLangRequestData = request.data
         if data.req.is_chunked > 0:
             return False
+        if output.data is None:
+            return False
         semantic = int(output.data.codes[0, -1].item())
         if semantic == self.eos_token_id:
             return True
@@ -100,9 +105,9 @@ class Audio8ModelRunner:
             if data.vq_mask_tokens is not None and data.vq_parts:
                 mask = data.vq_mask_tokens.to(device=device, dtype=torch.bool).flatten()
                 expected_length = prefix_length + request_length
-                if mask.numel() != expected_length:
+                if expected_length > mask.numel():
                     raise ValueError(
-                        f"Audio8 reference mask length {mask.numel()} != request length {expected_length}"
+                        f"Audio8 reference mask length {mask.numel()} < request span {expected_length}"
                     )
                 mask_slice = mask[prefix_length : prefix_length + request_length]
                 parts = [part.to(device=device, dtype=torch.long).T for part in data.vq_parts]
@@ -167,6 +172,16 @@ class Audio8ModelRunner:
                 and bool(model._vq_mask[index].item())
             ):
                 model._vq_codes[index].copy_(data._last_codebook_values)
+            elif (
+                not is_prefill
+                and data._last_codebook_values is None
+                and bool(model._vq_mask[index].item())
+            ):
+                logger.warning(
+                    "AUDIO8-STALE-VQ index=%d rid=%s mask=True last_codebook=None",
+                    index,
+                    data.req.rid,
+                )
 
     def _build_outputs(self, scheduler_output: SchedulerOutput) -> dict[str, RequestOutput]:
         model = self.model_worker.model_runner.model
@@ -190,6 +205,14 @@ class Audio8ModelRunner:
         schedule_batch = scheduler_output.batch_data
         worker_batch = schedule_batch.get_model_worker_batch()
         is_prefill = schedule_batch.forward_mode.is_extend()
+        if len(scheduler_output.requests) != len(schedule_batch.reqs):
+            logger.warning(
+                "AUDIO8-ALIGN requests=%d batch_reqs=%d batch_rows=%s mode=%s",
+                len(scheduler_output.requests),
+                len(schedule_batch.reqs),
+                tuple(worker_batch.input_ids.shape),
+                schedule_batch.forward_mode,
+            )
         self._update_runtime_buffers(
             worker_batch,
             scheduler_output,
@@ -219,8 +242,24 @@ class Audio8ModelRunner:
 
 
 class Audio8ResourceManager(SGLangResourceManager):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._freed_since_compact = 0
+
     def free(self, request: SchedulerRequest) -> None:
         data: Audio8SGLangRequestData = request.data
+        self._freed_since_compact += 1
         release_kv_cache(data.req, self.tree_cache)
         data._previous_semantic_tokens.clear()
         data._last_codebook_values = None
+        if self._freed_since_compact >= 64:
+            self._freed_since_compact = 0
+            if torch.cuda.is_available():
+                allocated = torch.cuda.memory_allocated()
+                reserved = torch.cuda.memory_reserved()
+                logger.info(
+                    "Audio8 memory: allocated=%.2f GB reserved=%.2f GB",
+                    allocated / 1024**3,
+                    reserved / 1024**3,
+                )
+                torch.cuda.empty_cache()

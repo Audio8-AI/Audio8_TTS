@@ -59,6 +59,7 @@ def apply_tts_result(state: Audio8TTSState, result: Audio8SGLangRequestData) -> 
         all_codes = torch.cat(result.output_codes, dim=1)
         state.output_codes = all_codes[1:]
         state.completion_tokens = int(all_codes.shape[1])
+        result.output_codes.clear()
     else:
         state.output_codes = None
     state.prompt_tokens = len(result.input_ids) if result.input_ids is not None else 0

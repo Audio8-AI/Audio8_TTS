@@ -304,6 +304,13 @@ of decoder context and a one-frame boundary guard. Override these values with
 `AUDIO8_TTS_STREAM_CHUNK_FRAMES`, `AUDIO8_TTS_STREAM_CONTEXT_FRAMES`, and
 `AUDIO8_TTS_STREAM_GUARD_FRAMES`.
 
+Streaming is a server-side opt-in. Start the service with
+`AUDIO8_TTS_STREAM_ENABLED=1` to enable SSE streaming; the default is off, and
+requests are answered with the complete audio after generation finishes
+(a request-level `"stream": true` is then ignored). Non-streaming remains the
+default for maximum throughput and stable memory usage. `response_format` of
+`codes`/`codec`/`npy` always returns codec codes without streaming.
+
 Run the smoke test to verify a deployment:
 
 ```bash

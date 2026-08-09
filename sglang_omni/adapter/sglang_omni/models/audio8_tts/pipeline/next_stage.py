@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 from typing import Any
 
+from sglang_omni.models.audio8_tts.pipeline.state_io import load_state
+
 
 def preprocessing_next(request_id: str, output: Any) -> str:
     del request_id, output
@@ -8,7 +10,10 @@ def preprocessing_next(request_id: str, output: Any) -> str:
 
 
 def tts_engine_next(request_id: str, output: Any) -> str:
-    del request_id, output
+    del request_id
+    state = load_state(output)
+    if state.response_format in {"codes", "codec", "npy"}:
+        return None
     return "vocoder"
 
 
