@@ -1,6 +1,8 @@
 <div align="center">
 
-<!-- Teaser video: audio8-0.1B-teaser.mp4 -->
+<a href="audio8-0.1B-teaser.mp4?raw=1">
+  <img src="audio8-0.1B-teaser-poster.jpg" alt="Watch the Audio8-TTS-0.1B teaser" width="100%">
+</a>
 
 # Audio8-TTS-0.1B
 
