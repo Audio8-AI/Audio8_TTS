@@ -217,3 +217,32 @@ h1 { margin-bottom: 8px; color: var(--primary); font-size: 44px; line-height: 1.
   .target-block, .audio-block { grid-template-columns: 1fr; gap: 8px; }
   .back-to-top { right: 12px; bottom: 12px; }
 }
+
+/* Audio8-TTS 0.1B flat listening page. */
+.flat-demo-page #demo-root { padding-top: 16px; }
+.flat-demo-page .flat-sample-head {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--soft-line);
+}
+.flat-demo-page .flat-language-label {
+  color: #44505e;
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+.flat-demo-page .flat-sample-card .sample-number { min-width: 34px; }
+.flat-demo-page .flat-sample-card .target-block { min-height: 92px; }
+.flat-demo-page .flat-sample-card .target-copy { align-self: center; }
+.flat-demo-page .flat-sample-card .generated-block .audio-heading span { color: var(--output); }
+
+@media (max-width: 680px) {
+  .flat-demo-page #demo-root { padding-top: 4px; }
+  .flat-demo-page .flat-sample-head { padding-inline: 14px; }
+  .flat-demo-page .flat-sample-card .target-block { min-height: 0; }
+  .flat-demo-page .flat-sample-card .audio-block { padding: 16px 14px; }
+}
