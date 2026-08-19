@@ -1,0 +1,9 @@
+deepspeed==0.18.4
+numpy==2.2.6
+safetensors==0.7.0
+soundfile==0.13.1
+tensorboard==2.20.0
+torch==2.8.0
+torchaudio==2.8.0
+transformers==4.57.6
+tqdm==4.67.3
