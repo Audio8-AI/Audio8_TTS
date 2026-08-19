@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: Apache-2.0
+config_cls: Audio8TTSPipelineConfig
+name: audio8-tts-0.6b
+model_path: /models/Audio8-TTS-Preview-0.6b
+relay_backend: shm
+entry_stage: preprocessing
+stages:
+  - name: preprocessing
+    num_workers: 1
+    executor:
+      factory: sglang_omni.models.audio8_tts.pipeline.stages.create_preprocessing_executor
+      args:
+        device: cuda:0
+    get_next: sglang_omni.models.audio8_tts.pipeline.next_stage.preprocessing_next
+    relay:
+      device: cpu
+  - name: tts_engine
+    num_workers: 1
+    executor:
+      factory: sglang_omni.models.audio8_tts.pipeline.stages.create_sglang_tts_engine_executor
+      args:
+        device: cuda:0
+        max_new_tokens: 1024
+    get_next: sglang_omni.models.audio8_tts.pipeline.next_stage.tts_engine_next
+    relay:
+      device: cuda
+    stream_to:
+      - to_stage: vocoder
+  - name: vocoder
+    num_workers: 1
+    executor:
+      factory: sglang_omni.models.audio8_tts.pipeline.stages.create_vocoder_executor
+      args:
+        device: cuda:0
+    get_next: sglang_omni.models.audio8_tts.pipeline.next_stage.vocoder_next
+    relay:
+      device: cpu

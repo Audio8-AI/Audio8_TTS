@@ -1,7 +1,0 @@
--r base.txt
-jiwer==4.0.0
-librosa==0.11.0
-scipy==1.17.0
-
-# OmniVoice's WavLM backend additionally expects s3prl==0.4.18 in the
-# reward environment. Install it there rather than in the trainer environment.

@@ -1,2 +1,0 @@
-{"id":"zero_shot_zh","text":"这是一个零样本语音合成测试。","reference_text":"请填写参考音频对应的文本。","reference_audio":"/path/to/reference.wav"}
-{"id":"codes_en","text":"This is an Audio8 Falcon H1 inference test.","reference_text":"Replace this with the reference transcript.","reference_codes":"/path/to/reference_codes.npy"}
