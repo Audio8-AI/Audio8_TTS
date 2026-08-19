@@ -1,0 +1,437 @@
+{
+  "model": "Audio8-TTS-0.1B",
+  "multilingual": [
+    {
+      "id": "multilingual_fr_01",
+      "order": 1,
+      "language": "French",
+      "nativeName": "Français",
+      "targetLanguage": "fr-FR",
+      "targetText": "Bonjour. Je vais d'abord au marché faire quelques achats. Ensuite, je rentre préparer le déjeuner. Cet après-midi, on pourra aller se promener ensemble.",
+      "reference": {
+        "language": "fr",
+        "text": "Françaises, Français, mes chers compatriotes, je m'adresse à vous ce soir en raison de la situation internationale et de ses conséquences pour notre pays et pour l'Europe.",
+        "audio": "audio/multilingual/reference/multilingual_fr_01.mp3"
+      },
+      "output": { "audio": "audio/multilingual/output/multilingual_fr_01.mp3" }
+    },
+    {
+      "id": "multilingual_de_01",
+      "order": 2,
+      "language": "German",
+      "nativeName": "Deutsch",
+      "targetLanguage": "de-DE",
+      "targetText": "Guten Morgen. Ich gehe zuerst auf den Markt und kaufe ein paar Sachen. Danach gehe ich nach Hause und mache das Mittagessen. Heute Nachmittag können wir zusammen spazieren gehen.",
+      "reference": {
+        "language": "de",
+        "text": "Willkommen zur Tagesschau in einfacher Sprache. Ich bin Susanne Stichler und das sind unsere Nachrichten.",
+        "audio": "audio/multilingual/reference/multilingual_de_01.mp3"
+      },
+      "output": { "audio": "audio/multilingual/output/multilingual_de_01.mp3" }
+    },
+    {
+      "id": "multilingual_it_01",
+      "order": 3,
+      "language": "Italian",
+      "nativeName": "Italiano",
+      "targetLanguage": "it-IT",
+      "targetText": "Buongiorno. Prima vado al mercato a comprare qualcosa. Poi torno a casa e preparo il pranzo. Nel pomeriggio andiamo a fare una passeggiata insieme.",
+      "reference": {
+        "language": "it",
+        "text": "Ma poi quello che ci dicono è che i soldi non comprano la felicità e io credo che non sia vero. E anzi mi chiedo come fa a non esserci ancora chiarezza su un argomento così importante.",
+        "audio": "audio/multilingual/reference/multilingual_it_01.mp3"
+      },
+      "output": { "audio": "audio/multilingual/output/multilingual_it_01.mp3" }
+    },
+    {
+      "id": "multilingual_ja_01",
+      "order": 4,
+      "language": "Japanese",
+      "nativeName": "日本語",
+      "targetLanguage": "ja-JP",
+      "targetText": "おはよう。まず市場に行って、少し買い物をします。それから家に帰って、昼ごはんを作ります。午後は一緒に散歩に行きましょう。",
+      "reference": {
+        "language": "ja",
+        "text": "今日は少し寒いけれど、約束どおり駅前で会いましょう。温かい飲み物も忘れずに持ってきてね。",
+        "audio": "audio/multilingual/reference/multilingual_ja_01.mp3"
+      },
+      "output": { "audio": "audio/multilingual/output/multilingual_ja_01.mp3" }
+    },
+    {
+      "id": "multilingual_es_01",
+      "order": 5,
+      "language": "Spanish",
+      "nativeName": "Español",
+      "targetLanguage": "es-ES",
+      "targetText": "Buenos días. Primero voy al mercado a comprar algunas cosas. Después vuelvo a casa para preparar la comida. Por la tarde podemos salir juntos a dar un paseo.",
+      "reference": {
+        "language": "es",
+        "text": "Bueno, yo pienso que eso sería bueno, ya que así tendremos más medicamentos, tendremos más posibilidades para los pacientes.",
+        "audio": "audio/multilingual/reference/multilingual_es_01.mp3"
+      },
+      "output": { "audio": "audio/multilingual/output/multilingual_es_01.mp3" }
+    }
+  ],
+  "samples": [
+    {
+      "id": "zh_01",
+      "order": 1,
+      "targetLanguage": "zh-CN",
+      "targetText": "早上出门前，记得把窗户关好，顺手检查一下煤气，晚上回来再开窗通风。",
+      "reference": {
+        "language": "zh",
+        "text": "有人说啊，我们每天呢会和三百个陌生人擦肩而过。今天我想做一个特别的实验：当你收到来自陌生人的善意的时候，会有什么样的反应呢？",
+        "audio": "audio/reference/zh_01.mp3"
+      },
+      "output": { "audio": "audio/output/zh_01.mp3" }
+    },
+    {
+      "id": "zh_02",
+      "order": 2,
+      "targetLanguage": "zh-CN",
+      "targetText": "我今天下班会早一点，先去买点菜，回家以后我们一起做晚饭吧。",
+      "reference": {
+        "language": "zh",
+        "text": "根据最新气象资料，本周末北方多地将迎来降温，出行前请及时查看天气预报。",
+        "audio": "audio/reference/zh_02.mp3"
+      },
+      "output": { "audio": "audio/output/zh_02.mp3" }
+    },
+    {
+      "id": "zh_03",
+      "order": 3,
+      "targetLanguage": "zh-CN",
+      "targetText": "这个周末天气应该不错，我们上午去公园走走，下午找家咖啡店坐一会儿。",
+      "reference": {
+        "language": "zh",
+        "text": "您别看这件事听着简单，真要做起来，还得把顺序一件一件理清楚。",
+        "audio": "audio/reference/zh_03.mp3"
+      },
+      "output": { "audio": "audio/output/zh_03.mp3" }
+    },
+    {
+      "id": "zh_04",
+      "order": 4,
+      "targetLanguage": "zh-CN",
+      "targetText": "你的快递已经放在门口架子上了，外面风有点大，记得进门时顺手带进来。",
+      "reference": {
+        "language": "zh",
+        "text": "这份报告明明昨天就该交，你现在才告诉我数据还没有核对完，怎么能这样？",
+        "audio": "audio/reference/zh_04.mp3"
+      },
+      "output": { "audio": "audio/output/zh_04.mp3" }
+    },
+    {
+      "id": "zh_05",
+      "order": 5,
+      "targetLanguage": "zh-CN",
+      "targetText": "我刚煮好一壶咖啡，你要加一点牛奶，还是想喝原味的黑咖啡？",
+      "reference": {
+        "language": "zh",
+        "text": "我把那封信收进抽屉，很多话没有说出口，却一直留在心里。",
+        "audio": "audio/reference/zh_05.mp3"
+      },
+      "output": { "audio": "audio/output/zh_05.mp3" }
+    },
+    {
+      "id": "zh_06",
+      "order": 6,
+      "targetLanguage": "zh-CN",
+      "targetText": "路上车比平时多一些，我可能会晚十分钟，你先进去找个位置坐吧。",
+      "reference": {
+        "language": "zh",
+        "text": "清晨的薄雾沿着山谷慢慢散开，第一缕阳光落在安静的湖面上。",
+        "audio": "audio/reference/zh_06.mp3"
+      },
+      "output": { "audio": "audio/output/zh_06.mp3" }
+    },
+    {
+      "id": "zh_07",
+      "order": 7,
+      "targetLanguage": "zh-CN",
+      "targetText": "这件衬衫洗完以后记得晾在阴凉处，别直接放在太阳底下，颜色容易变淡。",
+      "reference": {
+        "language": "zh",
+        "text": "我在窗边写下这段话，院子里的桂花刚刚开，空气里有一阵淡淡的香气。",
+        "audio": "audio/reference/zh_07.mp3"
+      },
+      "output": { "audio": "audio/output/zh_07.mp3" }
+    },
+    {
+      "id": "zh_08",
+      "order": 8,
+      "targetLanguage": "zh-CN",
+      "targetText": "会议改到下午三点了，地点还是原来的房间，出发前记得带上那份文件。",
+      "reference": {
+        "language": "zh",
+        "text": "欢迎来到海边小镇，沿着这条石板路往前走，就能看到今天开放的灯塔。",
+        "audio": "audio/reference/zh_08.mp3"
+      },
+      "output": { "audio": "audio/output/zh_08.mp3" }
+    },
+    {
+      "id": "zh_09",
+      "order": 9,
+      "targetLanguage": "zh-CN",
+      "targetText": "我把钥匙放在书桌最右边的抽屉里，和备用电池放在一起，你需要时自己拿。",
+      "reference": {
+        "language": "zh",
+        "text": "像我早上用完，今天一整天都是清清爽爽的。这男士洗面奶我也用过不少，大多洗完之后脸上特别干，紧绷得慌，还有一股很重的酒精味儿。",
+        "audio": "audio/reference/zh_09.mp3"
+      },
+      "output": { "audio": "audio/output/zh_09.mp3" }
+    },
+    {
+      "id": "zh_10",
+      "order": 10,
+      "targetLanguage": "zh-CN",
+      "targetText": "如果你现在有点累，我们就先休息一会儿，等吃完饭再把剩下的事情做完。",
+      "reference": {
+        "language": "zh",
+        "text": "我的这位置能走吗？刘宗东一个Q，好角度Q了两个人。那这样老干爹在河道大获全胜。蝎子再一个一拳二重击配合着汤原的推。刘宗东点出一个赞，知道你换不了我，感觉就是我们输的那种情况呀。",
+        "audio": "audio/reference/zh_10.mp3"
+      },
+      "output": { "audio": "audio/output/zh_10.mp3" }
+    },
+    {
+      "id": "zh_11",
+      "order": 11,
+      "targetLanguage": "zh-CN",
+      "targetText": "昨天看的那部电影比我想象中有意思，故事虽然简单，但是结尾让我记了很久。",
+      "reference": {
+        "language": "zh",
+        "text": "首先，这个英雄啊，我确实没玩过。光看比赛的话，以为这英雄很难的，原来就是个大号得力。首先，他的被动：暴击额外造成百分之十的魔法伤害。",
+        "audio": "audio/reference/zh_11.mp3"
+      },
+      "output": { "audio": "audio/output/zh_11.mp3" }
+    },
+    {
+      "id": "zh_12",
+      "order": 12,
+      "targetLanguage": "zh-CN",
+      "targetText": "冰箱里还有一些水果和酸奶，想吃就拿一点，记得今天晚上之前吃完。",
+      "reference": {
+        "language": "zh",
+        "text": "很多年以后，当我再次回到那座城市，才发现记忆里的街道和真实的风景已经完全不同。",
+        "audio": "audio/reference/zh_12.mp3"
+      },
+      "output": { "audio": "audio/output/zh_12.mp3" }
+    },
+    {
+      "id": "zh_13",
+      "order": 13,
+      "targetLanguage": "zh-CN",
+      "targetText": "你到家以后给我发个消息，让我知道路上顺利，我就不用一直担心了。",
+      "reference": {
+        "language": "zh",
+        "text": "我把蓝色的风筝带到公园，风一吹，它就飞得比屋顶还高。",
+        "audio": "audio/reference/zh_13.mp3"
+      },
+      "output": { "audio": "audio/output/zh_13.mp3" }
+    },
+    {
+      "id": "zh_14",
+      "order": 14,
+      "targetLanguage": "zh-CN",
+      "targetText": "今天的晚霞特别漂亮，风也不大，正好适合出去散步，顺便买点面包回来。",
+      "reference": {
+        "language": "zh",
+        "text": "灯已经关了，大家都睡着了，我们轻一点说话，别把他们吵醒。",
+        "audio": "audio/reference/zh_14.mp3"
+      },
+      "output": { "audio": "audio/output/zh_14.mp3" }
+    },
+    {
+      "id": "zh_15",
+      "order": 15,
+      "targetLanguage": "zh-CN",
+      "targetText": "我们先把这件事认真做完，再一起讨论下一个计划，别一边忙一边改方向。",
+      "reference": {
+        "language": "zh",
+        "text": "前往杭州的旅客请注意，检票口已经开放，请带好随身物品有序进站。",
+        "audio": "audio/reference/zh_15.mp3"
+      },
+      "output": { "audio": "audio/output/zh_15.mp3" }
+    },
+    {
+      "id": "en_01",
+      "order": 1,
+      "targetLanguage": "en-US",
+      "targetText": "Before you leave this morning, remember to close the windows, check the stove, and open them again when you get home.",
+      "reference": {
+        "language": "en",
+        "text": "The room is quiet now. Take a slow breath, close your eyes, and let the day fade gently away.",
+        "audio": "audio/reference/en_01.mp3"
+      },
+      "output": { "audio": "audio/output/en_01.mp3" }
+    },
+    {
+      "id": "en_02",
+      "order": 2,
+      "targetLanguage": "en-US",
+      "targetText": "I'm getting off work a little early today, so I'll pick up some groceries and we can cook dinner together.",
+      "reference": {
+        "language": "en",
+        "text": "You are really the the sunlight of my day. You, when I'm with you, I feel so much warmer and and better and safer and it's just the best feeling.",
+        "audio": "audio/reference/en_02.mp3"
+      },
+      "output": { "audio": "audio/output/en_02.mp3" }
+    },
+    {
+      "id": "en_03",
+      "order": 3,
+      "targetLanguage": "en-US",
+      "targetText": "The weather should be nice this weekend, so let's walk through the park in the morning and sit at a cafe afterward.",
+      "reference": {
+        "language": "en",
+        "text": "Oh my gosh, I can't believe it! Are you serious? I can't believe I did that myself. What's going to be the next step from here?",
+        "audio": "audio/reference/en_03.mp3"
+      },
+      "output": { "audio": "audio/output/en_03.mp3" }
+    },
+    {
+      "id": "en_04",
+      "order": 4,
+      "targetLanguage": "en-US",
+      "targetText": "Your package is on the shelf by the door, and it's pretty windy outside, so please bring it in when you come home.",
+      "reference": {
+        "language": "en",
+        "text": "Not an unusual sight, but she chose makeup so that'll be very smudgy for dad to deal with.",
+        "audio": "audio/reference/en_04.mp3"
+      },
+      "output": { "audio": "audio/output/en_04.mp3" }
+    },
+    {
+      "id": "en_05",
+      "order": 5,
+      "targetLanguage": "en-US",
+      "targetText": "I just made a fresh pot of coffee; would you like some milk, or would you rather have it black?",
+      "reference": {
+        "language": "en",
+        "text": "What? Did you not see the stop sign? You just blew right through it. You could have T boned me and my wife right here. Are you kidding me? Dude, you need to watch where you're going.",
+        "audio": "audio/reference/en_05.mp3"
+      },
+      "output": { "audio": "audio/output/en_05.mp3" }
+    },
+    {
+      "id": "en_06",
+      "order": 6,
+      "targetLanguage": "en-US",
+      "targetText": "Traffic is heavier than usual, so I might be ten minutes late; please go inside and find a seat without me.",
+      "reference": {
+        "language": "en",
+        "text": "Now I'm gonna relax, and just cuddle with a blanket and watch some anime. Ah, it was such a great day today. I'm just happy.",
+        "audio": "audio/reference/en_06.mp3"
+      },
+      "output": { "audio": "audio/output/en_06.mp3" }
+    },
+    {
+      "id": "en_07",
+      "order": 7,
+      "targetLanguage": "en-US",
+      "targetText": "After you wash this shirt, hang it somewhere shady instead of leaving it in the sun, or the color may fade.",
+      "reference": {
+        "language": "en",
+        "text": "This is a disgusting donut that is filled with nasty beans, and I don't like beans. I don't like donuts either.",
+        "audio": "audio/reference/en_07.mp3"
+      },
+      "output": { "audio": "audio/output/en_07.mp3" }
+    },
+    {
+      "id": "en_08",
+      "order": 8,
+      "targetLanguage": "en-US",
+      "targetText": "The meeting has moved to three this afternoon, but it's still in the same room, so bring the report with you.",
+      "reference": {
+        "language": "en",
+        "text": "Oh my goodness, look at that! That is the sweetest, cutest thing ever. I love it.",
+        "audio": "audio/reference/en_08.mp3"
+      },
+      "output": { "audio": "audio/output/en_08.mp3" }
+    },
+    {
+      "id": "en_09",
+      "order": 9,
+      "targetLanguage": "en-US",
+      "targetText": "I put the keys in the far-right desk drawer beside the spare batteries, so take them whenever you need them.",
+      "reference": {
+        "language": "en",
+        "text": "Your grades are good, you're good at basketball, you're good at football, I just I can't tell you what you do. I am so proud of you, I'm proud to call you my son.",
+        "audio": "audio/reference/en_09.mp3"
+      },
+      "output": { "audio": "audio/output/en_09.mp3" }
+    },
+    {
+      "id": "en_10",
+      "order": 10,
+      "targetLanguage": "en-US",
+      "targetText": "If you're feeling tired, let's take a short break now and finish the rest after dinner.",
+      "reference": {
+        "language": "en",
+        "text": "I'm so sad and alone and scared and cold. Wonder if anybody's gonna take me home ever. I don't like it here at the pound.",
+        "audio": "audio/reference/en_10.mp3"
+      },
+      "output": { "audio": "audio/output/en_10.mp3" }
+    },
+    {
+      "id": "en_11",
+      "order": 11,
+      "targetLanguage": "en-US",
+      "targetText": "The movie we watched yesterday was more interesting than I expected; the story was simple, but the ending stayed with me.",
+      "reference": {
+        "language": "en",
+        "text": "The bakery opened before sunrise, and the first trays of bread were already cooling beside the window.",
+        "audio": "audio/reference/en_11.mp3"
+      },
+      "output": { "audio": "audio/output/en_11.mp3" }
+    },
+    {
+      "id": "en_12",
+      "order": 12,
+      "targetLanguage": "en-US",
+      "targetText": "There's fruit and yogurt in the fridge, so help yourself before they reach their expiration date.",
+      "reference": {
+        "language": "en",
+        "text": "I left the spare keys beside the blue notebook, just in case you arrive before I get home.",
+        "audio": "audio/reference/en_12.mp3"
+      },
+      "output": { "audio": "audio/output/en_12.mp3" }
+    },
+    {
+      "id": "en_13",
+      "order": 13,
+      "targetLanguage": "en-US",
+      "targetText": "Send me a message when you get home and let me know the trip went smoothly, so I won't worry.",
+      "reference": {
+        "language": "en",
+        "text": "After the storm passed, the children ran outside to inspect the branches scattered across the yard.",
+        "audio": "audio/reference/en_13.mp3"
+      },
+      "output": { "audio": "audio/output/en_13.mp3" }
+    },
+    {
+      "id": "en_14",
+      "order": 14,
+      "targetLanguage": "en-US",
+      "targetText": "The sunset looks beautiful tonight, and the wind is calm, so let's go for a walk and pick up some bread.",
+      "reference": {
+        "language": "en",
+        "text": "Our meeting has moved to Thursday afternoon, so please update the calendar before lunch.",
+        "audio": "audio/reference/en_14.mp3"
+      },
+      "output": { "audio": "audio/output/en_14.mp3" }
+    },
+    {
+      "id": "en_15",
+      "order": 15,
+      "targetLanguage": "en-US",
+      "targetText": "Let's finish this carefully first, then discuss the next plan together instead of changing direction while we're still busy.",
+      "reference": {
+        "language": "en",
+        "text": "Someone must move that table. I keep walking around here and I've never had that problem. The one time I'm not paying attention to where I'm going, of course. The one time I'm not wearing shoes.",
+        "audio": "audio/reference/en_15.mp3"
+      },
+      "output": { "audio": "audio/output/en_15.mp3" }
+    }
+  ]
+}

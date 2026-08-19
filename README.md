@@ -16,6 +16,13 @@
 
 </div>
 
+> 🚀 **How small a zero-shot cloning TTS can be?** Meet our latest release,
+> **Audio8-TTS-0.1B**: a powerful, compact, and even portable text-to-speech
+> model!
+>
+> [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--Preview--0.1b-yellow?style=for-the-badge)](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.1b)
+> [![Demo-0.1B Audio Samples](https://img.shields.io/badge/Demo--0.1B-Audio%20Samples-brightgreen?style=for-the-badge&logo=githubpages)](https://audio8-ai.github.io/Audio8_TTS/0.1B/)
+
 This repository provides the audio8_tts Preview checkpoint, Hugging Face remote
 code, inference tools, and an independent SFT pipeline for multilingual speech
 generation and zero-shot voice cloning.
