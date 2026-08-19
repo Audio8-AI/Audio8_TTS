@@ -25,9 +25,11 @@ generation and zero-shot voice cloning.
 > Multilingual coverage and Chinese dialect support will be expanded in later
 > releases.
 >
-> **How small a zero-shot cloning TTS can be?** We are proud to introduce
-> Audio8-TTS-0.1B: a compact, powerful and portable TTS model!
-> **[Audio8-TTS-0.1B main page](assets/audio8-0.1B-assets/README.md)**
+
+> **New Release：🤔How small a zero-shot cloning TTS can be?** 
+> 🚀 We are proud to introduce
+> Audio8-TTS-0.1B: a **compact, powerful and portable** TTS model!
+> **[Click here!](assets/audio8-0.1B-assets/README.md)**
 
 ## Supported Languages
 
