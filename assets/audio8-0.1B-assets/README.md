@@ -11,9 +11,7 @@
 
 ### 🎬 Audio8-TTS-0.1B Teaser
 
-<a href="audio8-0.1B-teaser.mp4?raw=1">
-  <img src="audio8-0.1B-teaser-poster.jpg" alt="Watch the Audio8-TTS-0.1B teaser" width="640">
-</a>
+https://github.com/user-attachments/assets/d5f2b9a3-a87d-49a3-9df4-a3d1c377531d
 
 <sub>🔊 Tiny model. Big voice. Zero-shot cloning, ready to go anywhere.</sub>
 
