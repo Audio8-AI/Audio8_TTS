@@ -148,6 +148,56 @@ Download the ONNX model from
 [Audio8-TTS-Preview-0.6B-ONNX-INT4](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6B-ONNX-INT4)
 and follow the [ONNX Runtime guide](onnx_runtime/README.md).
 
+## Rust Runtime
+
+[`rust_runtime/`](rust_runtime/) is a native Rust port of the ONNX Runtime
+inference path, built against the [`ort`](https://ort.pyke.io/) crate. It runs
+the same INT4 Slow/Fast AR graphs and FP16 codec as `onnx_runtime/`, with a
+from-scratch Rust port of the tokenizer/prompt builder, autoregressive
+sampling loop, and KV-cache management.
+
+CPU and CUDA execution providers are both supported (`--cuda` flag). The CUDA
+path uses `ort`'s IoBinding API to keep the KV-cache and activation tensors
+resident in device memory across steps, avoiding a host-device copy on every
+autoregressive step, and enables ONNX Runtime's CUDA graph capture
+(`with_cuda_graph`) for the fixed-shape decode-step calls.
+
+```bash
+cd rust_runtime
+cargo build --release --bin synth
+./target/release/synth.exe --cuda "Your text here."
+```
+
+Requires a registered voice at `../onnx_runtime/voices/` (see the [ONNX
+Runtime guide](onnx_runtime/README.md) for registration) and the downloaded
+ONNX model at `../onnx_runtime/model/`. The CUDA path additionally requires
+cuDNN 9.x - see [`rust_runtime/`](rust_runtime/) for setup notes.
+
+### Performance
+
+Measured on an RTX 3060 Laptop GPU (6 GB VRAM, consumer Ampere) and a 16-core
+Windows machine, same registered reference voice, comparable text lengths.
+Lower RTF is better.
+
+| Path | RTF |
+|---|---:|
+| Python, ONNX Runtime, CPU (`onnx_runtime/`) | 2.72 |
+| Rust, ONNX Runtime, CPU (`rust_runtime/`) | 3.48 |
+| Rust, ONNX Runtime, CUDA + IoBinding (`rust_runtime/`) | 3.2-3.5 |
+| Python, PyTorch, CUDA, eager mode (`audio8_tts_infer.py`) | 6.44 |
+
+On this hardware and at this model size (0.6B, single-stream, batch 1), the
+existing Python CPU path remains the fastest local option measured so far.
+CUDA graph capture's replay-specific speedup was not confirmed active (no
+sharp first-call-vs-later-calls latency drop was observed); the improvement
+over plain CUDA execution came from IoBinding's copy avoidance, not
+confirmed graph replay. GPU execution does not yet clearly beat a
+well-tuned CPU INT4 path at this scale on this GPU - consistent with the
+per-step launch-overhead-bound nature of small-model, low-batch
+autoregressive generation. The [SGLang Omni](#sglang-omni-serving) path
+remains the fastest GPU option, but only on the datacenter-class hardware it
+was validated against.
+
 ## SGLang Omni Serving
 
 The adapter in [`sglang_omni/`](sglang_omni/) provides an OpenAI-compatible

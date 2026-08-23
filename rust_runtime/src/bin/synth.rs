@@ -55,7 +55,7 @@ fn main() -> anyhow::Result<()> {
     let mut audio = Vec::new();
     for run in 0..repeats {
         let synth_start = Instant::now();
-        let codes = runtime.synthesize_no_reference(&text, &meta.reference_text, &reference_codes, 128, 0.0, 1.0, 1, 42)?;
+        let codes = runtime.synthesize_no_reference(&text, &meta.reference_text, &reference_codes, 256, 0.8, 0.95, 50, 42 + run as u64)?;
         let generation_elapsed = synth_start.elapsed();
 
         let decode_start = Instant::now();
