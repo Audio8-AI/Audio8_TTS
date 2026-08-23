@@ -28,3 +28,8 @@ pytorch_model*.bin
 
 .gm/
 .agentplug-kv/
+
+/.cache_downloads/
+/rust_runtime/target/
+/rust_runtime/cudnn/
+/rust_runtime/*.wav
