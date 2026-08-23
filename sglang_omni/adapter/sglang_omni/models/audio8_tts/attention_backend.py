@@ -20,10 +20,16 @@ ATTENTION_BACKEND_ENV = "AUDIO8_TTS_ATTENTION_BACKEND"
 DEFAULT_ATTENTION_BACKEND = "fa3"
 PORTABLE_ATTENTION_BACKEND = "flashinfer"
 
-# Consumer Blackwell (RTX 50 series) reports compute capability (12, 0) and has
-# no FA3 kernel image, so flash_attn_with_kvcache fails at launch with
-# "no kernel image is available for execution on the device".
-_CAPABILITIES_WITHOUT_FA3 = frozenset({(12, 0)})
+# FA3 (Flash Attention 3) kernels are built for Hopper (sm_90) only, per this
+# module's own docstring. Any other compute capability - older than Hopper
+# (Pascal/Volta/Turing/Ampere/Ada, e.g. sm_86 consumer Ampere such as the RTX
+# 30 series) or newer (consumer Blackwell, compute capability (12, 0), which
+# reports "no kernel image is available for execution on the device") - has
+# no FA3 kernel image. A positive allowlist of the one capability that does
+# ship FA3 is used instead of enumerating every capability that lacks it, so
+# a future non-Hopper architecture is never silently misclassified as
+# FA3-capable by omission.
+_CAPABILITIES_WITH_FA3 = frozenset({(9, 0)})
 
 
 def _device_capability() -> Optional[Tuple[int, int]]:
@@ -44,7 +50,7 @@ def fa3_kernels_available() -> bool:
     capability = _device_capability()
     if capability is None:
         return True
-    if capability in _CAPABILITIES_WITHOUT_FA3:
+    if capability not in _CAPABILITIES_WITH_FA3:
         logger.info(
             "Compute capability %s has no FA3 kernel image; defaulting to the "
             "'%s' attention backend. Set %s to override.",

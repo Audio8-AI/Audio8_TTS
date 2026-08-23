@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .venv/
+.venv-pytorch/
 
 outputs/
 runs/
@@ -24,3 +25,6 @@ prepared_data/
 *.pt
 *.ckpt
 pytorch_model*.bin
+
+.gm/
+.agentplug-kv/
