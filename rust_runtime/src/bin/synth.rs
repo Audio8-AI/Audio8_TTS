@@ -44,35 +44,37 @@ fn main() -> anyhow::Result<()> {
     let (reference_codes, meta) = load_voice("probe_voice")?;
     println!("[synth] loaded voice probe_voice, reference codes shape {:?}", reference_codes.shape());
 
-    let synth_start = Instant::now();
-    let codes = runtime.synthesize_no_reference(
-        &text,
-        &meta.reference_text,
-        &reference_codes,
-        256,
-        0.8,
-        0.95,
-        50,
-        42,
-    )?;
-    let generation_elapsed = synth_start.elapsed();
-    println!("[synth] generated {} codec frames in {:?}", codes.shape()[1], generation_elapsed);
-
-    let decode_start = Instant::now();
-    let audio = runtime.decode_codes(&codes)?;
-    let decode_elapsed = decode_start.elapsed();
-    println!("[synth] decoded {} audio samples in {:?}", audio.len(), decode_elapsed);
+    let repeats: usize = args
+        .iter()
+        .position(|a| a == "--repeat")
+        .and_then(|i| args.get(i + 1))
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(1);
 
     let sample_rate = 44100u32;
-    let audio_duration_s = audio.len() as f64 / sample_rate as f64;
-    let total_elapsed = synth_start.elapsed();
-    let rtf = total_elapsed.as_secs_f64() / audio_duration_s;
-    println!(
-        "[synth] audio_duration={:.3}s synthesis_time={:.3}s RTF={:.4}",
-        audio_duration_s,
-        total_elapsed.as_secs_f64(),
-        rtf
-    );
+    let mut audio = Vec::new();
+    for run in 0..repeats {
+        let synth_start = Instant::now();
+        let codes = runtime.synthesize_no_reference(&text, &meta.reference_text, &reference_codes, 128, 0.0, 1.0, 1, 42)?;
+        let generation_elapsed = synth_start.elapsed();
+
+        let decode_start = Instant::now();
+        audio = runtime.decode_codes(&codes)?;
+        let decode_elapsed = decode_start.elapsed();
+
+        let audio_duration_s = audio.len() as f64 / sample_rate as f64;
+        let total_elapsed = synth_start.elapsed();
+        let rtf = total_elapsed.as_secs_f64() / audio_duration_s;
+        println!(
+            "[synth] run={run} frames={} gen={:?} decode={:?} audio_duration={:.3}s synthesis_time={:.3}s RTF={:.4}",
+            codes.shape()[1],
+            generation_elapsed,
+            decode_elapsed,
+            audio_duration_s,
+            total_elapsed.as_secs_f64(),
+            rtf
+        );
+    }
 
     let spec = hound::WavSpec {
         channels: 1,
