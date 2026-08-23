@@ -2,7 +2,7 @@ use std::path::Path;
 
 use half::f16;
 use ndarray::{Array2, ArrayD, IxDyn};
-use ort::session::Session;
+use ort::session::{IoBinding, Session};
 use ort::value::Tensor;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
@@ -36,12 +36,27 @@ pub enum ExecutionProviderChoice {
     Cuda,
 }
 
+/// Persistent, address-stable device buffers + IoBinding for the fast-AR
+/// session, reused across every fast_step call within a frame and across
+/// frames - required for CUDA graph capture, which replays the exact same
+/// memory addresses on every call after the first.
+struct FastGraphState {
+    binding: IoBinding,
+    hidden: Tensor<f16>,
+    token_id: Tensor<i64>,
+    use_hidden: Tensor<bool>,
+    input_pos: Tensor<i64>,
+    cache_keys: Vec<Tensor<f16>>,
+    cache_values: Vec<Tensor<f16>>,
+}
+
 pub struct ArkTtsRuntime {
     slow: Session,
     fast: Session,
     decoder: Session,
     prompt_builder: PromptBuilder,
     manifest: RuntimeManifest,
+    fast_graph: Option<FastGraphState>,
 }
 
 impl ArkTtsRuntime {
@@ -58,7 +73,7 @@ impl ArkTtsRuntime {
             let mut builder = match ep {
                 ExecutionProviderChoice::Cpu => builder,
                 ExecutionProviderChoice::Cuda => builder
-                    .with_execution_providers([ort::ep::CUDA::default().build()])
+                    .with_execution_providers([ort::ep::CUDA::default().with_cuda_graph(true).build()])
                     .map_err(|e| anyhow::anyhow!("cuda ep: {e}"))?,
             };
             builder
@@ -67,7 +82,7 @@ impl ArkTtsRuntime {
         };
 
         let slow = build_session("slow_ar_int4.onnx")?;
-        let fast = build_session("fast_ar_int4.onnx")?;
+        let mut fast = build_session("fast_ar_int4.onnx")?;
         let decoder = build_session("codec_decoder_fp16.onnx")?;
 
         let prompt_builder = PromptBuilder::new(
@@ -76,7 +91,56 @@ impl ArkTtsRuntime {
             manifest.num_codebooks,
         )?;
 
-        Ok(Self { slow, fast, decoder, prompt_builder, manifest })
+        let fast_graph = match ep {
+            ExecutionProviderChoice::Cpu => None,
+            ExecutionProviderChoice::Cuda => Some(Self::build_fast_graph_state(&mut fast, &manifest)?),
+        };
+
+        Ok(Self { slow, fast, decoder, prompt_builder, manifest, fast_graph })
+    }
+
+    fn build_fast_graph_state(fast: &mut Session, manifest: &RuntimeManifest) -> anyhow::Result<FastGraphState> {
+        let allocator = fast.allocator();
+
+        let hidden = Tensor::<f16>::new(&allocator, [1usize, 1, 896]).map_err(|e| anyhow::anyhow!("alloc hidden: {e}"))?;
+        let token_id = Tensor::<i64>::new(&allocator, [1usize, 1]).map_err(|e| anyhow::anyhow!("alloc token_id: {e}"))?;
+        let use_hidden = Tensor::<bool>::new(&allocator, [1usize]).map_err(|e| anyhow::anyhow!("alloc use_hidden: {e}"))?;
+        let input_pos = Tensor::<i64>::new(&allocator, [1usize]).map_err(|e| anyhow::anyhow!("alloc input_pos: {e}"))?;
+
+        let cache_shape = [1usize, manifest.fast_n_local_heads, manifest.num_codebooks, manifest.fast_head_dim];
+        let mut cache_keys = Vec::with_capacity(manifest.num_fast_layers);
+        let mut cache_values = Vec::with_capacity(manifest.num_fast_layers);
+        for _ in 0..manifest.num_fast_layers {
+            cache_keys.push(Tensor::<f16>::new(&allocator, cache_shape).map_err(|e| anyhow::anyhow!("alloc cache_key: {e}"))?);
+            cache_values.push(Tensor::<f16>::new(&allocator, cache_shape).map_err(|e| anyhow::anyhow!("alloc cache_value: {e}"))?);
+        }
+
+        let mut binding = fast.create_binding().map_err(|e| anyhow::anyhow!("create_binding: {e}"))?;
+        binding.bind_input("slow_hidden", &hidden).map_err(|e| anyhow::anyhow!("bind slow_hidden: {e}"))?;
+        binding.bind_input("token_id", &token_id).map_err(|e| anyhow::anyhow!("bind token_id: {e}"))?;
+        binding.bind_input("use_slow_hidden", &use_hidden).map_err(|e| anyhow::anyhow!("bind use_slow_hidden: {e}"))?;
+        binding.bind_input("input_pos", &input_pos).map_err(|e| anyhow::anyhow!("bind input_pos: {e}"))?;
+        for i in 0..manifest.num_fast_layers {
+            binding
+                .bind_input(format!("cache_key_{i}"), &cache_keys[i])
+                .map_err(|e| anyhow::anyhow!("bind cache_key_{i}: {e}"))?;
+            binding
+                .bind_input(format!("cache_value_{i}"), &cache_values[i])
+                .map_err(|e| anyhow::anyhow!("bind cache_value_{i}: {e}"))?;
+        }
+        binding
+            .bind_output_to_device("logits", &allocator.memory_info())
+            .map_err(|e| anyhow::anyhow!("bind logits output: {e}"))?;
+        for i in 0..manifest.num_fast_layers {
+            binding
+                .bind_output_to_device(format!("key_delta_{i}"), &allocator.memory_info())
+                .map_err(|e| anyhow::anyhow!("bind key_delta_{i} output: {e}"))?;
+            binding
+                .bind_output_to_device(format!("value_delta_{i}"), &allocator.memory_info())
+                .map_err(|e| anyhow::anyhow!("bind value_delta_{i} output: {e}"))?;
+        }
+
+        Ok(FastGraphState { binding, hidden, token_id, use_hidden, input_pos, cache_keys, cache_values })
     }
 
     fn empty_slow_caches(&self) -> Vec<ArrayD<f16>> {
@@ -143,6 +207,10 @@ impl ArkTtsRuntime {
         position: i64,
         caches: &mut [ArrayD<f16>],
     ) -> anyhow::Result<Vec<f32>> {
+        if let Some(graph) = self.fast_graph.as_mut() {
+            return Self::fast_step_graph(&mut self.fast, graph, hidden, token_id, use_hidden, position, caches, self.manifest.num_fast_layers);
+        }
+
         let mut inputs = ort::inputs![
             "slow_hidden" => Tensor::from_array(hidden.clone())?,
             "token_id" => Tensor::from_array(ArrayD::from_shape_vec(IxDyn(&[1, 1]), vec![token_id])?)?,
@@ -162,6 +230,48 @@ impl ArkTtsRuntime {
         let logits: Vec<f32> = (0..vocab).map(|v| logits_view[[0, last_t, v]]).collect();
 
         for i in 0..self.manifest.num_fast_layers {
+            let key_delta = outputs[format!("key_delta_{i}")].try_extract_array::<f16>()?;
+            let value_delta = outputs[format!("value_delta_{i}")].try_extract_array::<f16>()?;
+            update_cache_at_positions(&mut caches[2 * i], &key_delta, &[position]);
+            update_cache_at_positions(&mut caches[2 * i + 1], &value_delta, &[position]);
+        }
+
+        Ok(logits)
+    }
+
+    /// IoBinding-based fast_step: writes into the SAME device tensors bound
+    /// at setup (address-stable across calls, required for CUDA graph replay)
+    /// instead of allocating+copying fresh tensors every call.
+    #[allow(clippy::too_many_arguments)]
+    fn fast_step_graph(
+        fast: &mut Session,
+        graph: &mut FastGraphState,
+        hidden: &ArrayD<f16>,
+        token_id: i64,
+        use_hidden: bool,
+        position: i64,
+        caches: &mut [ArrayD<f16>],
+        num_fast_layers: usize,
+    ) -> anyhow::Result<Vec<f32>> {
+        graph.hidden.extract_array_mut().assign(&hidden.view());
+        graph.token_id.extract_array_mut()[[0, 0]] = token_id;
+        graph.use_hidden.extract_array_mut()[[0]] = use_hidden;
+        graph.input_pos.extract_array_mut()[[0]] = position;
+        for i in 0..num_fast_layers {
+            graph.cache_keys[i].extract_array_mut().assign(&caches[2 * i].view());
+            graph.cache_values[i].extract_array_mut().assign(&caches[2 * i + 1].view());
+        }
+
+        graph.binding.synchronize_inputs().map_err(|e| anyhow::anyhow!("sync inputs: {e}"))?;
+        let outputs = fast.run_binding(&graph.binding).map_err(|e| anyhow::anyhow!("run_binding: {e}"))?;
+
+        let logits_view = outputs["logits"].try_extract_array::<f32>()?;
+        let logits_shape = logits_view.shape();
+        let last_t = logits_shape[1] - 1;
+        let vocab = logits_shape[2];
+        let logits: Vec<f32> = (0..vocab).map(|v| logits_view[[0, last_t, v]]).collect();
+
+        for i in 0..num_fast_layers {
             let key_delta = outputs[format!("key_delta_{i}")].try_extract_array::<f16>()?;
             let value_delta = outputs[format!("value_delta_{i}")].try_extract_array::<f16>()?;
             update_cache_at_positions(&mut caches[2 * i], &key_delta, &[position]);
