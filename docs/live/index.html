@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="Audio8-TTS-0.6B live in-browser text-to-speech, running entirely client-side via onnxruntime-web.">
+    <title>Audio8-TTS-0.6B - Live Browser Demo</title>
+    <link rel="stylesheet" href="style.css?v=1">
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="shell">
+        <div class="title-row">
+          <div>
+            <h1>Audio8-TTS-0.6B</h1>
+            <p class="subtitle">Live text-to-speech synthesis, running entirely in your browser via ONNX Runtime Web. Nothing is uploaded to a server.</p>
+          </div>
+          <nav class="links">
+            <a href="../index.html">Listening samples</a>
+            <a href="https://github.com/Audio8-AI/Audio8_TTS" target="_blank" rel="noreferrer">GitHub</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="panel" aria-labelledby="load-title">
+        <h2 id="load-title">1. Load the model</h2>
+        <p class="hint">Downloads about 572&nbsp;MiB on first visit, then caches locally in your browser for repeat visits (Cache Storage API). Requires WebAssembly.</p>
+        <div class="row">
+          <label for="ep-select">Execution provider</label>
+          <select id="ep-select">
+            <option value="wasm" selected>WASM (CPU, recommended)</option>
+            <option value="webgpu">WebGPU (experimental, currently broken)</option>
+          </select>
+          <button id="load-model" type="button">Load model</button>
+        </div>
+        <p class="hint" id="webgpu-note">WebGPU currently fails at inference time for this model due to an upstream <a href="https://github.com/microsoft/onnxruntime/issues/28029" target="_blank" rel="noreferrer">onnxruntime-web WebGPU shape-handling bug</a> in the MatMulNBits (INT4) kernel, reproduced on the latest nightly build as of 2026-08-23. Use WASM until that is fixed upstream.</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
+        <p id="progress-label" class="progress-label"></p>
+        <p id="status" class="status" role="status">Idle.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="voice-title">
+        <h2 id="voice-title">2. Optional: clone a reference voice</h2>
+        <p class="hint">Upload a 0.5-30 second clean recording and its exact transcript. If skipped, a built-in placeholder reference is used.</p>
+        <div class="row">
+          <label for="reference-audio">Reference audio</label>
+          <input id="reference-audio" type="file" accept="audio/*">
+        </div>
+        <div class="row">
+          <label for="reference-text">Reference transcript</label>
+          <textarea id="reference-text" rows="2" placeholder="Exact transcript of the reference audio."></textarea>
+        </div>
+        <button id="register-voice" type="button" disabled>Register voice</button>
+      </section>
+
+      <section class="panel" aria-labelledby="synth-title">
+        <h2 id="synth-title">3. Synthesize</h2>
+        <div class="row">
+          <label for="target-text">Text to speak</label>
+          <textarea id="target-text" rows="3" placeholder="Welcome to Audio8 TTS running live in your browser.">Welcome to Audio8 TTS running live in your browser.</textarea>
+        </div>
+        <button id="synthesize" type="button" disabled>Synthesize</button>
+        <p id="error-box" class="error" hidden></p>
+        <audio id="player" controls hidden></audio>
+        <a id="download-link" class="download-link" hidden download="audio8-tts-output.wav">Download WAV</a>
+        <p id="timing-box" class="timing" hidden></p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell"><p>Model weights are fetched at runtime from the Hugging Face Hub and cached in your browser. No audio or text you enter is sent to any server.</p></div>
+    </footer>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
