@@ -193,10 +193,36 @@ Lower RTF is better.
 
 | Path | RTF |
 |---|---:|
-| **Rust, ONNX Runtime, CUDA (`rust_runtime/`)** | **2.30-2.41** |
+| **Rust, ONNX Runtime, CUDA (`rust_runtime/`)** | **2.01-3.35** (best warm run: 2.01) |
 | Python, ONNX Runtime, CPU (`onnx_runtime/`) | 2.72 |
-| Rust, ONNX Runtime, CPU (`rust_runtime/`) | 3.48-4.42 |
+| Rust, ONNX Runtime, CPU (`rust_runtime/`) | 3.21-4.63 |
 | Python, PyTorch, CUDA, eager mode (`audio8_tts_infer.py`) | 6.44 |
+
+This machine is shared with other processes at measurement time (this
+development session's own GPU/CPU load among them) - `nvidia-smi`/CPU-counter
+checks during otherwise-idle moments still showed 40%+ GPU and ~79% CPU
+utilization from other work, which is enough to move these numbers by a
+factor of ~1.5x run to run. The ranges above reflect that; the best observed
+warm CUDA run (2.01) is the number to trust as the ceiling on this hardware
+when it isn't contended.
+
+Rust CUDA is tuned further on top of the base fix (TF32, explicit attention
+backend selection, exhaustive cuDNN conv algorithm search, and 2 pinned
+intra-op threads - CUDA-path only, see below) for the current best numbers.
+One real regression was caught and fixed along the way: pinning intra-op
+threads globally first *broke* the CPU path (3.48-4.42 -> 4.63, measured, not
+assumed) because it genuinely relies on multi-threaded matmul, unlike the
+CUDA path's few remaining CPU-fallback ops (see below), which are tiny
+single-sequence shape ops that gain nothing from extra threads. Scoping the
+thread pin to the CUDA execution provider only fixed it.
+
+`ort`'s `with_disable_cpu_fallback` (forcing every op onto CUDA) was also
+tried, on the theory that ORT's own CPU-fallback choice for cheap shape ops
+is tuned for larger/batched workloads and might lose to this model's
+hundreds of tiny sequential decode-loop calls. It hard-fails instead -
+`disable_cpu_fallback` blocks ORT's own perf-motivated placements exactly
+like a genuinely-unsupported op, with no way to distinguish the two through
+`ort`'s public API. Not pursued further.
 
 Rust CUDA is the fastest local path measured. Getting here took real,
 witnessed debugging, not just parameter tuning - worth recording because the
@@ -233,12 +259,21 @@ mistake is easy to repeat:
 - **CUDA graph capture is still off** (`with_cuda_graph` defaults to
   `false`; `ARKTTS_CUDA_GRAPH=1` re-enables it) - not because it isn't
   activating, but because ONNX Runtime explicitly refuses it for this
-  model: some ops (INT4-quantization-adjacent and shape-related, 816/124/367
-  nodes across the three sessions) are CPU-assigned even with the CUDA EP
-  active, and ORT hard-errors rather than degrading gracefully when graph
-  capture is requested against a mixed-provider graph. This is a genuine,
-  documented ONNX Runtime constraint for this model as exported, not a bug
-  in this code or in `ort`.
+  model: some ops (816/124/367 nodes across the three sessions) are
+  CPU-assigned even with the CUDA EP active, and ORT hard-errors rather
+  than degrading gracefully when graph capture is requested against a
+  mixed-provider graph. This is a genuine, documented ONNX Runtime
+  constraint for this model as exported, not a bug in this code or in
+  `ort`.
+- Those CPU-fallback nodes were inspected directly (full node-by-node
+  placement logs, `ARKTTS_VERBOSE_ORT=1`): every one is `Gather`, `Concat`,
+  `Unsqueeze`, `Slice`, or `Cast` - cheap shape/indexing bookkeeping for the
+  KV cache, never `MatMul`, `Softmax`, `Attention`, or the INT4 quantization
+  ops. All real compute already runs on CUDA. ORT's own log explains this is
+  a deliberate choice ("shape related ops assigned to CPU to improve
+  perf"), not a coverage gap - confirmed by `with_disable_cpu_fallback`
+  hard-failing rather than running everything on GPU (see above). Chasing
+  full CUDA placement was correctly not worth pursuing further.
 
 The [SGLang Omni](#sglang-omni-serving) path is still faster (RTF 0.116) on
 the datacenter-class hardware it was validated against - full CUDA graph

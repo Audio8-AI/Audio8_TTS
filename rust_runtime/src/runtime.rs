@@ -127,7 +127,7 @@ impl ArkTtsRuntime {
 
         let build_session = |file: &str| -> anyhow::Result<Session> {
             let builder = Session::builder().map_err(|e| anyhow::anyhow!("session builder: {e}"))?;
-            let mut builder = match ep {
+            let builder = match ep {
                 ExecutionProviderChoice::Cpu => builder,
                 ExecutionProviderChoice::Cuda => {
                     // Graph capture is off by default: ORT hard-errors ("all
@@ -139,10 +139,41 @@ impl ArkTtsRuntime {
                     // ARKTTS_CUDA_GRAPH=1 re-enables it, e.g. to test a future
                     // model export with full CUDA op coverage.
                     let use_graph = std::env::var("ARKTTS_CUDA_GRAPH").is_ok();
-                    builder
-                        .with_execution_providers([ort::ep::CUDA::default().with_cuda_graph(use_graph).build()])
-                        .map_err(|e| anyhow::anyhow!("cuda ep: {e}"))?
+                    let cuda_ep = ort::ep::CUDA::default()
+                        .with_cuda_graph(use_graph)
+                        .with_tf32(true)
+                        .with_attention_backend(
+                            ort::ep::cuda::AttentionBackend::FLASH_ATTENTION
+                                | ort::ep::cuda::AttentionBackend::EFFICIENT_ATTENTION
+                                | ort::ep::cuda::AttentionBackend::CUDNN_FLASH_ATTENTION,
+                        )
+                        .with_conv_algorithm_search(ort::ep::cuda::ConvAlgorithmSearch::Exhaustive)
+                        .with_arena_extend_strategy(ort::ep::ArenaExtendStrategy::SameAsRequested);
+                    let builder = builder
+                        .with_execution_providers([cuda_ep.build()])
+                        .map_err(|e| anyhow::anyhow!("cuda ep: {e}"))?;
+                    if std::env::var("ARKTTS_FORCE_CUDA_ONLY").is_ok() {
+                        builder.with_disable_cpu_fallback().map_err(|e| anyhow::anyhow!("disable cpu fallback: {e}"))?
+                    } else {
+                        builder
+                    }
                 }
+            };
+            // On the CUDA path, the only ops still running on CPU are cheap
+            // shape/indexing ones (Gather/Concat/Unsqueeze/Slice - ORT's own
+            // deliberate placement, not a gap; see the CUDA-path note above)
+            // in a single-sequence autoregressive loop where parallelizing
+            // within one such tiny op buys nothing and only adds scheduling
+            // overhead - pin to a small fixed thread count there. The CPU-EP
+            // path is different: it runs the real INT4 matmuls and genuinely
+            // benefits from ORT's default (physical-core-count) threading -
+            // pinning it the same way measurably regressed RTF (3.48-4.42 ->
+            // 4.63), so it keeps ORT's default.
+            let mut builder = match ep {
+                ExecutionProviderChoice::Cuda => {
+                    builder.with_intra_threads(2).map_err(|e| anyhow::anyhow!("intra threads: {e}"))?
+                }
+                ExecutionProviderChoice::Cpu => builder,
             };
             builder
                 .commit_from_file(model_dir.join(file))
