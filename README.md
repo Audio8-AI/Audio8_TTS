@@ -182,21 +182,52 @@ Lower RTF is better.
 | Path | RTF |
 |---|---:|
 | Python, ONNX Runtime, CPU (`onnx_runtime/`) | 2.72 |
-| Rust, ONNX Runtime, CPU (`rust_runtime/`) | 3.48 |
-| Rust, ONNX Runtime, CUDA + IoBinding (`rust_runtime/`) | 3.2-3.5 |
+| Rust, ONNX Runtime, CPU (`rust_runtime/`) | 3.48-4.42 |
+| Rust, ONNX Runtime, CUDA + IoBinding (`rust_runtime/`) | 3.2-5.7 |
 | Python, PyTorch, CUDA, eager mode (`audio8_tts_infer.py`) | 6.44 |
 
 On this hardware and at this model size (0.6B, single-stream, batch 1), the
-existing Python CPU path remains the fastest local option measured so far.
-CUDA graph capture's replay-specific speedup was not confirmed active (no
-sharp first-call-vs-later-calls latency drop was observed); the improvement
-over plain CUDA execution came from IoBinding's copy avoidance, not
-confirmed graph replay. GPU execution does not yet clearly beat a
-well-tuned CPU INT4 path at this scale on this GPU - consistent with the
-per-step launch-overhead-bound nature of small-model, low-batch
-autoregressive generation. The [SGLang Omni](#sglang-omni-serving) path
-remains the fastest GPU option, but only on the datacenter-class hardware it
-was validated against.
+existing Python CPU path remains the fastest local option measured so far,
+and Rust CUDA does not clearly beat Rust CPU. This was investigated in
+depth, not just observed and accepted:
+
+- GPU utilization was directly measured (`nvidia-smi`) during a run and
+  found to be only 14-21% (~12 W of the card's 108 W rating) - not a
+  compute-bound workload. The cause was a real bug: the KV-cache tensors
+  were being fully re-copied host-to-device on every decode step (24 MB/step
+  for the slow-AR cache alone) instead of only the one new position that
+  actually changed. Fixed by writing deltas directly into the persistent,
+  address-stable device tensors. GPU utilization rose to 35-50% (~48 W) as a
+  direct, measured result of that fix.
+- RTF did not improve after the fix. Per-call timing instrumentation
+  (`ARKTTS_TIMING=1`) isolated why: the actual ONNX Runtime `run_binding`
+  call takes a flat 50-70 ms on every single decode step with zero
+  warm-up/replay speedup, across 30+ measured steps - the signature CUDA
+  graph capture is supposed to produce (a sharp drop after ORT's own
+  2-run warm-up threshold) never appears. **CUDA graph capture is confirmed
+  not providing its documented benefit here**, for a reason not yet fully
+  isolated: the graph contains no control-flow ops (the usual documented
+  blocker), and `ort` 2.0.0-rc.13's verbose session logging did not surface
+  ORT's own internal capture-status diagnostics through its public API,
+  which is itself a real gap worth reporting upstream.
+- Separately, `ort::memory::Allocator::new` with an explicit CUDA/CUDA_PINNED
+  `MemoryInfo` fails with ONNX Runtime's own "No requested allocator
+  available" on this session - `ort` exposes no binding for the
+  `CreateAndRegisterAllocator`/`use_env_allocators` mechanism ONNX Runtime's
+  own issue tracker names as the fix, so genuine GPU-resident tensor
+  allocation (as opposed to CPU-arena tensors bound via IoBinding, which is
+  what this crate uses) is not currently reachable through `ort`'s public
+  API at all.
+
+This is real, unfinished optimization work, not a hardware ceiling - the
+[SGLang Omni](#sglang-omni-serving) path proves the same architecture goes
+much faster (RTF 0.116) on datacenter GPUs where CUDA graph capture and
+FlashAttention are known to work end-to-end. The concrete next steps are:
+confirm whether `GatherBlockQuantized` (the INT4 quantization op) is what's
+blocking graph capture by testing an FP16-only export, wire up `ort`'s
+`Environment`-level logger callback to get ORT's real internal
+capture-status output, and/or patch `ort` to expose
+`CreateAndRegisterAllocator` for genuine device-resident tensors.
 
 ## SGLang Omni Serving
 

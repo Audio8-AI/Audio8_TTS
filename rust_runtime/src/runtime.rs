@@ -36,6 +36,22 @@ pub enum ExecutionProviderChoice {
     Cuda,
 }
 
+// NOTE on device residency: the natural fix here would be allocating these
+// persistent tensors on CUDA_PINNED memory (DMA-able by the GPU, still
+// host-writable) via ort::memory::Allocator::new(session, MemoryInfo::new(
+// AllocationDevice::CUDA_PINNED, ...)) - matching ort's own IoBinding docs
+// example. As of ort 2.0.0-rc.13 this consistently fails with ORT's own
+// "No requested allocator available" for both AllocationDevice::CUDA and
+// CUDA_PINNED on this session; ort exposes no binding for the
+// CreateAndRegisterAllocator / use_env_allocators mechanism ONNX Runtime's
+// own issue tracker names as the actual fix (registering a shared allocator
+// at the Environment level before session creation). session.allocator()
+// (the session's default CPU allocator) is used instead below - real device
+// residency for these tensors is not currently reachable through ort's
+// public API. The fix implemented instead (this session) targets the
+// measured bottleneck directly: writing only the changed delta into the
+// persistent tensor each step rather than re-copying the whole cache.
+
 /// Persistent, address-stable device buffers + IoBinding for the fast-AR
 /// session, reused across every fast_step call within a frame and across
 /// frames - required for CUDA graph capture, which replays the exact same
@@ -84,6 +100,13 @@ impl ArkTtsRuntime {
 
         let build_session = |file: &str| -> anyhow::Result<Session> {
             let builder = Session::builder().map_err(|e| anyhow::anyhow!("session builder: {e}"))?;
+            let builder = if std::env::var("ARKTTS_VERBOSE_ORT").is_ok() {
+                builder
+                    .with_log_level(ort::logging::LogLevel::Verbose)
+                    .map_err(|e| anyhow::anyhow!("log level: {e}"))?
+            } else {
+                builder
+            };
             let mut builder = match ep {
                 ExecutionProviderChoice::Cpu => builder,
                 ExecutionProviderChoice::Cuda => builder
@@ -226,7 +249,7 @@ impl ArkTtsRuntime {
     ) -> anyhow::Result<(Vec<f32>, ArrayD<f16>)> {
         if positions.len() == 1 {
             if let Some(graph) = self.slow_graph.as_mut() {
-                return Self::slow_step_graph(&mut self.slow, graph, codes, positions[0], caches, self.manifest.num_layers);
+                return Self::slow_step_graph(&mut self.slow, graph, codes, positions[0], self.manifest.num_layers);
             }
         }
 
@@ -265,28 +288,46 @@ impl ArkTtsRuntime {
             update_cache_at_positions(&mut caches[2 * i + 1], &value_delta, positions);
         }
 
+        // Prefill ran on the plain path (variable T); seed the persistent
+        // graph-path cache tensors once here so the first T=1 decode call
+        // that follows has correct history to build on.
+        if let Some(graph) = self.slow_graph.as_mut() {
+            for i in 0..self.manifest.num_layers {
+                graph.cache_keys[i].extract_array_mut().assign(&caches[2 * i].view());
+                graph.cache_values[i].extract_array_mut().assign(&caches[2 * i + 1].view());
+            }
+        }
+
         Ok((logits, hidden))
     }
 
     /// IoBinding-based slow_step for the fixed T=1 decode-step shape only.
+    /// The KV cache lives ONLY in graph.cache_keys/cache_values (persistent
+    /// across calls) - the host-side `caches` parameter is written once by
+    /// the prefill call before entering this path and is never re-read or
+    /// re-synced here, so the per-step cost is one small delta write instead
+    /// of a full max_seq_len-length copy.
     fn slow_step_graph(
         slow: &mut Session,
         graph: &mut SlowGraphState,
         codes: &ArrayD<i64>,
         position: i64,
-        caches: &mut [ArrayD<f16>],
         num_layers: usize,
     ) -> anyhow::Result<(Vec<f32>, ArrayD<f16>)> {
+        let t_prep = std::time::Instant::now();
         graph.codes.extract_array_mut().assign(&codes.view());
         graph.input_pos.extract_array_mut()[[0]] = position;
-        for i in 0..num_layers {
-            graph.cache_keys[i].extract_array_mut().assign(&caches[2 * i].view());
-            graph.cache_values[i].extract_array_mut().assign(&caches[2 * i + 1].view());
-        }
+        let prep_us = t_prep.elapsed().as_micros();
 
+        let t_sync = std::time::Instant::now();
         graph.binding.synchronize_inputs().map_err(|e| anyhow::anyhow!("sync inputs: {e}"))?;
-        let outputs = slow.run_binding(&graph.binding).map_err(|e| anyhow::anyhow!("run_binding: {e}"))?;
+        let sync_us = t_sync.elapsed().as_micros();
 
+        let t_run = std::time::Instant::now();
+        let outputs = slow.run_binding(&graph.binding).map_err(|e| anyhow::anyhow!("run_binding: {e}"))?;
+        let run_us = t_run.elapsed().as_micros();
+
+        let t_post = std::time::Instant::now();
         let logits_view = outputs["logits"].try_extract_array::<f32>()?;
         let hidden_view = outputs["slow_hidden"].try_extract_array::<f16>()?;
 
@@ -306,8 +347,12 @@ impl ArkTtsRuntime {
         for i in 0..num_layers {
             let key_delta = outputs[format!("key_delta_{i}")].try_extract_array::<f16>()?;
             let value_delta = outputs[format!("value_delta_{i}")].try_extract_array::<f16>()?;
-            update_cache_at_positions(&mut caches[2 * i], &key_delta, &[position]);
-            update_cache_at_positions(&mut caches[2 * i + 1], &value_delta, &[position]);
+            write_delta_into_tensor(&mut graph.cache_keys[i], &key_delta, position);
+            write_delta_into_tensor(&mut graph.cache_values[i], &value_delta, position);
+        }
+        let post_us = t_post.elapsed().as_micros();
+        if std::env::var("ARKTTS_TIMING").is_ok() {
+            eprintln!("[timing] slow_step_graph prep={prep_us}us sync={sync_us}us run={run_us}us post={post_us}us");
         }
 
         Ok((logits, hidden))
@@ -322,7 +367,16 @@ impl ArkTtsRuntime {
         caches: &mut [ArrayD<f16>],
     ) -> anyhow::Result<Vec<f32>> {
         if let Some(graph) = self.fast_graph.as_mut() {
-            return Self::fast_step_graph(&mut self.fast, graph, hidden, token_id, use_hidden, position, caches, self.manifest.num_fast_layers);
+            if use_hidden {
+                // Start of a new frame: reset the persistent device cache to
+                // zero directly (not via a host round-trip) instead of
+                // copying a freshly zeroed host array in every call.
+                for i in 0..self.manifest.num_fast_layers {
+                    graph.cache_keys[i].extract_array_mut().fill(f16::ZERO);
+                    graph.cache_values[i].extract_array_mut().fill(f16::ZERO);
+                }
+            }
+            return Self::fast_step_graph(&mut self.fast, graph, hidden, token_id, use_hidden, position, self.manifest.num_fast_layers);
         }
 
         let mut inputs = ort::inputs![
@@ -355,8 +409,10 @@ impl ArkTtsRuntime {
 
     /// IoBinding-based fast_step: writes into the SAME device tensors bound
     /// at setup (address-stable across calls, required for CUDA graph replay)
-    /// instead of allocating+copying fresh tensors every call.
-    #[allow(clippy::too_many_arguments)]
+    /// instead of allocating+copying fresh tensors every call. The KV cache
+    /// lives ONLY in graph.cache_keys/cache_values - callers must zero them
+    /// (fast_step does this at use_hidden=true, the start of each frame)
+    /// rather than pass a host-side cache array in.
     fn fast_step_graph(
         fast: &mut Session,
         graph: &mut FastGraphState,
@@ -364,17 +420,12 @@ impl ArkTtsRuntime {
         token_id: i64,
         use_hidden: bool,
         position: i64,
-        caches: &mut [ArrayD<f16>],
         num_fast_layers: usize,
     ) -> anyhow::Result<Vec<f32>> {
         graph.hidden.extract_array_mut().assign(&hidden.view());
         graph.token_id.extract_array_mut()[[0, 0]] = token_id;
         graph.use_hidden.extract_array_mut()[[0]] = use_hidden;
         graph.input_pos.extract_array_mut()[[0]] = position;
-        for i in 0..num_fast_layers {
-            graph.cache_keys[i].extract_array_mut().assign(&caches[2 * i].view());
-            graph.cache_values[i].extract_array_mut().assign(&caches[2 * i + 1].view());
-        }
 
         graph.binding.synchronize_inputs().map_err(|e| anyhow::anyhow!("sync inputs: {e}"))?;
         let outputs = fast.run_binding(&graph.binding).map_err(|e| anyhow::anyhow!("run_binding: {e}"))?;
@@ -388,8 +439,8 @@ impl ArkTtsRuntime {
         for i in 0..num_fast_layers {
             let key_delta = outputs[format!("key_delta_{i}")].try_extract_array::<f16>()?;
             let value_delta = outputs[format!("value_delta_{i}")].try_extract_array::<f16>()?;
-            update_cache_at_positions(&mut caches[2 * i], &key_delta, &[position]);
-            update_cache_at_positions(&mut caches[2 * i + 1], &value_delta, &[position]);
+            write_delta_into_tensor(&mut graph.cache_keys[i], &key_delta, position);
+            write_delta_into_tensor(&mut graph.cache_values[i], &value_delta, position);
         }
 
         Ok(logits)
@@ -532,6 +583,20 @@ fn update_cache_at_positions(cache: &mut ArrayD<f16>, delta: &ndarray::ArrayView
             for d in 0..head_dim {
                 cache[[0, h, pos as usize, d]] = delta[[0, h, i, d]];
             }
+        }
+    }
+}
+
+/// Same as update_cache_at_positions, but writes a single position's delta
+/// directly into a persistent ort Tensor (the graph-path cache) instead of a
+/// plain host array - avoids ever copying the whole cache tensor per step.
+fn write_delta_into_tensor(cache: &mut Tensor<f16>, delta: &ndarray::ArrayViewD<f16>, position: i64) {
+    let mut view = cache.extract_array_mut();
+    let heads = view.shape()[1];
+    let head_dim = view.shape()[3];
+    for h in 0..heads {
+        for d in 0..head_dim {
+            view[[0, h, position as usize, d]] = delta[[0, h, 0, d]];
         }
     }
 }
