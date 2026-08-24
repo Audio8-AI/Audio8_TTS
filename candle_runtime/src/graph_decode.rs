@@ -297,12 +297,73 @@ struct GraphUnit {
     graph: RawCudaGraph,
 }
 
+/// Capture-time cuGraphLaunch/cuStreamEndCapture failures at this op-count
+/// scale are intermittent, not deterministic (measured live: a single
+/// transformer layer's capture succeeds ~40% of the time, fails the rest
+/// with CUDA_ERROR_ILLEGAL_ADDRESS - see the
+/// cuda-graph-capture-intermittent-not-broken mutable). Capture happens
+/// exactly once per (layer, position) at model load, never per-request, so
+/// retrying a failed attempt costs nothing at serving time (~7-40ms per
+/// attempt) in exchange for reliably landing the real 10-14x replay speedup
+/// instead of falling back to uncaptured calls. A failed attempt's Vars are
+/// dropped and freshly reallocated on the next attempt - reusing the same
+/// Var across a failed-then-retried capture was not verified safe and isn't
+/// worth the risk given how cheap a clean retry is.
+const CAPTURE_RETRY_ATTEMPTS: usize = 20;
+
 impl GraphUnit {
     fn capture(
         stream: &Arc<CudaStream>,
         device: &Device,
         input_shape: (usize, usize, usize),
         run: impl Fn(&Tensor) -> Result<Tensor>,
+    ) -> Result<Self> {
+        let mut last_err = None;
+        for attempt in 0..CAPTURE_RETRY_ATTEMPTS {
+            let unit = match Self::try_capture_once(stream, device, input_shape, &run) {
+                Ok(unit) => unit,
+                Err(e) => {
+                    last_err = Some(e);
+                    continue;
+                }
+            };
+            // cuGraphInstantiateWithFlags can silently accept a corrupt
+            // graph - the real failure this retries against sometimes only
+            // manifests on the FIRST launch(), not at capture/instantiate
+            // time (see the module-level cuda-graph-capture-intermittent-
+            // not-broken finding). Probe with one real launch+sync before
+            // trusting this attempt; a failed probe means this whole unit
+            // (input/output Vars included) is discarded and a fresh attempt
+            // starts from scratch, never reusing a Var a failed attempt
+            // touched.
+            let probe_input = match Tensor::zeros(input_shape, DType::F32, device) {
+                Ok(t) => t,
+                Err(e) => {
+                    last_err = Some(e);
+                    continue;
+                }
+            };
+            let probe_result = unit.launch(&probe_input).and_then(|_| device.synchronize());
+            match probe_result {
+                Ok(()) => {
+                    if attempt > 0 && std::env::var("ARKTTS_TIMING").is_ok() {
+                        eprintln!("[graph_decode] GraphUnit::capture succeeded on attempt {}", attempt + 1);
+                    }
+                    return Ok(unit);
+                }
+                Err(e) => last_err = Some(e),
+            }
+        }
+        Err(candle_core::Error::Msg(format!(
+            "GraphUnit::capture failed after {CAPTURE_RETRY_ATTEMPTS} attempts, last error: {last_err:?}"
+        )))
+    }
+
+    fn try_capture_once(
+        stream: &Arc<CudaStream>,
+        device: &Device,
+        input_shape: (usize, usize, usize),
+        run: &impl Fn(&Tensor) -> Result<Tensor>,
     ) -> Result<Self> {
         let input = Var::zeros(input_shape, DType::F32, device)?;
         let mut warm = run(input.as_tensor())?;

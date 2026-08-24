@@ -50,3 +50,8 @@ required-features = ["cuda"]
 name = "graph_smoke_test"
 path = "src/bin/graph_smoke_test.rs"
 required-features = ["cuda"]
+
+[[bin]]
+name = "chained_decode_bench"
+path = "src/bin/chained_decode_bench.rs"
+required-features = ["cuda"]
