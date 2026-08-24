@@ -193,10 +193,12 @@ Lower RTF is better.
 
 | Path | RTF |
 |---|---:|
-| **Rust, ONNX Runtime, CUDA (`rust_runtime/`)** | **2.01-3.35** (best warm run: 2.01) |
+| **Rust, ONNX Runtime, CUDA (`rust_runtime/`)** | **2.01-3.36** (best warm run: 2.01) |
 | Python, ONNX Runtime, CPU (`onnx_runtime/`) | 2.72 |
+| Rust, candle, CUDA (`candle_runtime/`) | 2.93-3.91 (best warm run: 2.93) |
 | Rust, ONNX Runtime, CPU (`rust_runtime/`) | 3.21-4.63 |
 | Python, PyTorch, CUDA, eager mode (`audio8_tts_infer.py`) | 6.44 |
+| Rust, candle, CPU (`candle_runtime/`) | 14.78 |
 
 This machine is shared with other processes at measurement time (this
 development session's own GPU/CPU load among them) - `nvidia-smi`/CPU-counter
@@ -281,6 +283,88 @@ capture there comes from a model/runtime combination with complete CUDA op
 coverage, which this ONNX export does not have. Closing that remaining gap
 would mean re-exporting the model with the quantization ops replaced by
 CUDA-covered equivalents, which is separate, larger work.
+
+## Rust, candle Runtime (`candle_runtime/`)
+
+A second, independent Rust implementation of the DualAR model, built directly
+on [candle](https://github.com/huggingface/candle) (HuggingFace's Rust ML
+framework) instead of the ONNX Runtime. The motivation: ONNX Runtime refuses
+CUDA graph capture outright for this model because a handful of cheap
+shape-bookkeeping ops (`Gather`/`Concat`/`Unsqueeze`/`Slice`/`Cast`, never
+real compute) stay CPU-assigned, and ORT hard-errors on graph capture against
+any mixed-provider graph rather than degrading gracefully (see above). A
+model built natively in candle has no such mixed-provider constraint - every
+op, including the small shape ones, runs through the same CUDA backend, so
+graph capture was worth investigating as a path toward SGLang-class
+performance without needing SGLang itself (Linux-only compiled CUDA kernels,
+no Windows wheels - see below).
+
+**What's here:** a full from-scratch port of the DualAR architecture (24-layer
+slow AR + 4-layer fast AR, GQA, RoPE, RMSNorm) and the codec decoder (RVQ
+dequant, causal-masked transformer, ConvNeXt upsampling, DAC-style Snake
+vocoder) to candle, plus a from-scratch ONNX-to-candle weight conversion
+(`scripts/extract_onnx_weights.py` dequantizes the ONNX
+`GatherBlockQuantized`/`MatMulNBits` INT4 weights, `repack_quantized_weights`
+requantizes them into candle's Q4_0 GGUF format - the two formats are
+incompatible on block size, symmetry, and zero-point handling, so this is a
+real dequantize-then-requantize conversion, not a bit repack). Correctness
+was verified independently at each stage: model logits correlate 0.9956
+against the ONNX reference, the codec decoder correlates 1.0000 (mae
+0.000025), and end-to-end synthesis was verified via direct waveform
+inspection (RMS, duration, non-silence, and spectral speech-band
+concentration) exactly as done for every other engine in this project.
+
+**CUDA graph capture was not made reliable.** This is the honest negative
+result the investigation converged on, not a partial success. candle-core
+0.11.0 (and a git-main pin, hoping upstream's post-0.11.0 "Improve CUDA
+stream consistency" and "Add htod cache for cuda graphs" fixes would help)
+both show the same intermittent `CUDA_ERROR_ILLEGAL_ADDRESS` on the first
+launch after a successful capture+instantiate, once the captured region
+exceeds roughly one transformer layer's worth of ops: a single simple op
+captures reliably (8/8, 22/22 repeated runs), a single full layer succeeds
+only ~40% of the time (4/10 measured), and the full 4-layer forward pass
+captured as one graph failed 0/10+ times. Retry-until-success (up to 20
+attempts, since capture only happens once at model load) plus a per-layer
+chained-capture redesign (5 small graphs instead of 1 large one) were both
+tried as workarounds - the chained approach failed 0/8 on the first attempt
+per fresh process and 0/5 with 20 retries each (100 total attempts, zero
+successes), decisively worse than the single-op case, not solved by
+retrying. This is a real, reproducible reliability limitation in
+candle-core's current CUDA graph implementation on this GPU/driver
+combination, not a bug in this project's code - see
+`candle_runtime/src/graph_decode.rs`'s module doc for the full trail.
+
+**Result: correct, but not faster.** Without graph capture, the candle
+engine's plain (uncaptured) forward-pass execution measured RTF 2.93-3.91
+(best warm run 2.93) on CUDA - slightly worse than the already-tuned ONNX
+Runtime CUDA path (2.01-3.36, best 2.01) on the same hardware, same
+methodology (same text, same voice, same seed, same sampling parameters).
+The candle port's real value going forward is a correct, portable,
+from-scratch model implementation with no ONNX Runtime dependency, not a
+speed win - closing the gap to SGLang's 0.116 RTF still requires either an
+upstream candle-core CUDA graph reliability fix or a different graph-capture
+strategy not yet tried.
+
+### Building and running
+
+```
+cd candle_runtime
+# CPU:
+cargo build --release --bin synth
+ARKTTS_MODEL_DIR=../onnx_runtime/model ARKTTS_VOICES_DIR=../onnx_runtime/voices \
+  ./target/release/synth.exe "Your text here."
+
+# CUDA (needs cuDNN + the CUDA 13 cuBLAS runtime DLLs on PATH, same as
+# rust_runtime - see Setup above; candle-core is pinned to git main, which
+# additionally requires cl.exe on PATH to build its CUDA kernels from source):
+cargo build --release --bin synth --features cuda
+ARKTTS_MODEL_DIR=../onnx_runtime/model ARKTTS_VOICES_DIR=../onnx_runtime/voices \
+  ./target/release/synth.exe --cuda --repeat 3 "Your text here."
+```
+
+Weights are extracted from the ONNX model into `candle_runtime/weights/`
+(gitignored, regenerable) via `scripts/extract_onnx_weights.py` followed by
+the `repack_quantized_weights` binary; `synth` loads them from there directly.
 
 ## SGLang Omni Serving
 
