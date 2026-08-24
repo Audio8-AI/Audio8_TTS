@@ -2,6 +2,7 @@ use std::path::Path;
 
 use half::f16;
 use ndarray::{Array2, ArrayD, IxDyn};
+use ort::environment::Environment;
 use ort::session::{IoBinding, Session};
 use ort::value::Tensor;
 use rand::SeedableRng;
@@ -34,6 +35,28 @@ pub struct RuntimeManifest {
 pub enum ExecutionProviderChoice {
     Cpu,
     Cuda,
+}
+
+/// Registers a real console logger with the ORT Environment BEFORE any
+/// session is created - SessionBuilder::with_log_level alone only sets a
+/// severity filter and produces zero output without this, since ort has no
+/// default logger wired to a Rust `eprintln!`/console destination. Must be
+/// called before the first Session::builder() commit in the process; ort's
+/// global environment is a OnceLock, so a second call after the environment
+/// is already initialized is a silent no-op (commit() returns false).
+fn init_verbose_ort_logging() -> anyhow::Result<()> {
+    let logger: ort::logging::LoggerFunction = std::sync::Arc::new(
+        |level: ort::logging::LogLevel, category: &str, id: &str, code_location: &str, message: &str| {
+            eprintln!("[ort:{level:?}] [{category}] [{id}] {code_location}: {message}");
+        },
+    );
+    let committed = ort::init().with_logger(logger).commit();
+    if !committed {
+        eprintln!("[diag] ORT environment already initialized before verbose logging was requested - logger not installed");
+    }
+    let env = Environment::current().map_err(|e| anyhow::anyhow!("Environment::current: {e}"))?;
+    env.set_log_level(ort::logging::LogLevel::Verbose);
+    Ok(())
 }
 
 // NOTE on device residency: the natural fix here would be allocating these
@@ -95,23 +118,31 @@ impl ArkTtsRuntime {
     }
 
     pub fn load_with_ep(model_dir: &Path, ep: ExecutionProviderChoice) -> anyhow::Result<Self> {
+        if std::env::var("ARKTTS_VERBOSE_ORT").is_ok() {
+            init_verbose_ort_logging()?;
+        }
+
         let manifest_text = std::fs::read_to_string(model_dir.join("runtime_manifest.json"))?;
         let manifest: RuntimeManifest = serde_json::from_str(&manifest_text)?;
 
         let build_session = |file: &str| -> anyhow::Result<Session> {
             let builder = Session::builder().map_err(|e| anyhow::anyhow!("session builder: {e}"))?;
-            let builder = if std::env::var("ARKTTS_VERBOSE_ORT").is_ok() {
-                builder
-                    .with_log_level(ort::logging::LogLevel::Verbose)
-                    .map_err(|e| anyhow::anyhow!("log level: {e}"))?
-            } else {
-                builder
-            };
             let mut builder = match ep {
                 ExecutionProviderChoice::Cpu => builder,
-                ExecutionProviderChoice::Cuda => builder
-                    .with_execution_providers([ort::ep::CUDA::default().with_cuda_graph(true).build()])
-                    .map_err(|e| anyhow::anyhow!("cuda ep: {e}"))?,
+                ExecutionProviderChoice::Cuda => {
+                    // Graph capture is off by default: ORT hard-errors ("all
+                    // compute graph nodes have not been partitioned to the
+                    // CUDAExecutionProvider") because this model has a real,
+                    // confirmed mix of CUDA- and CPU-assigned ops (INT4
+                    // quantization-adjacent and shape ops land on CPU even
+                    // with the CUDA EP active) - not fixable from this crate.
+                    // ARKTTS_CUDA_GRAPH=1 re-enables it, e.g. to test a future
+                    // model export with full CUDA op coverage.
+                    let use_graph = std::env::var("ARKTTS_CUDA_GRAPH").is_ok();
+                    builder
+                        .with_execution_providers([ort::ep::CUDA::default().with_cuda_graph(use_graph).build()])
+                        .map_err(|e| anyhow::anyhow!("cuda ep: {e}"))?
+                }
             };
             builder
                 .commit_from_file(model_dir.join(file))

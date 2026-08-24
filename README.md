@@ -158,9 +158,8 @@ sampling loop, and KV-cache management.
 
 CPU and CUDA execution providers are both supported (`--cuda` flag). The CUDA
 path uses `ort`'s IoBinding API to keep the KV-cache and activation tensors
-resident in device memory across steps, avoiding a host-device copy on every
-autoregressive step, and enables ONNX Runtime's CUDA graph capture
-(`with_cuda_graph`) for the fixed-shape decode-step calls.
+address-stable across steps, avoiding a host-side reallocation on every
+autoregressive step.
 
 ```bash
 cd rust_runtime
@@ -170,8 +169,21 @@ cargo build --release --bin synth
 
 Requires a registered voice at `../onnx_runtime/voices/` (see the [ONNX
 Runtime guide](onnx_runtime/README.md) for registration) and the downloaded
-ONNX model at `../onnx_runtime/model/`. The CUDA path additionally requires
-cuDNN 9.x - see [`rust_runtime/`](rust_runtime/) for setup notes.
+ONNX model at `../onnx_runtime/model/`. The CUDA path additionally requires:
+
+- **cuDNN 9.x** for CUDA 12 (this repo was developed against 9.25.0.15).
+- **CUDA 13 cuBLAS runtime libraries**, even on a machine with only CUDA
+  Toolkit 12.x installed: `ort` 2.0.0-rc.13's `download-binaries` feature
+  fetches a CUDA-13-built ONNX Runtime, which needs `cublasLt64_13.dll` at
+  runtime regardless of what CUDA Toolkit version is on the system PATH. The
+  fastest way to get it without a full CUDA 13 Toolkit install:
+  `pip install nvidia-cublas --target rust_runtime/cuda13_libs`, then add
+  `rust_runtime/cuda13_libs/nvidia/cu13/bin/x86_64` to `PATH` alongside the
+  cuDNN directory before running.
+
+Both requirements' DLL directories need to be on `PATH` at build and run
+time; see `rust_runtime/cudnn/` and `rust_runtime/cuda13_libs/` (both
+gitignored - project-local, not committed).
 
 ### Performance
 
@@ -181,53 +193,59 @@ Lower RTF is better.
 
 | Path | RTF |
 |---|---:|
+| **Rust, ONNX Runtime, CUDA (`rust_runtime/`)** | **2.30-2.41** |
 | Python, ONNX Runtime, CPU (`onnx_runtime/`) | 2.72 |
 | Rust, ONNX Runtime, CPU (`rust_runtime/`) | 3.48-4.42 |
-| Rust, ONNX Runtime, CUDA + IoBinding (`rust_runtime/`) | 3.2-5.7 |
 | Python, PyTorch, CUDA, eager mode (`audio8_tts_infer.py`) | 6.44 |
 
-On this hardware and at this model size (0.6B, single-stream, batch 1), the
-existing Python CPU path remains the fastest local option measured so far,
-and Rust CUDA does not clearly beat Rust CPU. This was investigated in
-depth, not just observed and accepted:
+Rust CUDA is the fastest local path measured. Getting here took real,
+witnessed debugging, not just parameter tuning - worth recording because the
+mistake is easy to repeat:
 
-- GPU utilization was directly measured (`nvidia-smi`) during a run and
-  found to be only 14-21% (~12 W of the card's 108 W rating) - not a
-  compute-bound workload. The cause was a real bug: the KV-cache tensors
-  were being fully re-copied host-to-device on every decode step (24 MB/step
-  for the slow-AR cache alone) instead of only the one new position that
-  actually changed. Fixed by writing deltas directly into the persistent,
-  address-stable device tensors. GPU utilization rose to 35-50% (~48 W) as a
-  direct, measured result of that fix.
-- RTF did not improve after the fix. Per-call timing instrumentation
-  (`ARKTTS_TIMING=1`) isolated why: the actual ONNX Runtime `run_binding`
-  call takes a flat 50-70 ms on every single decode step with zero
-  warm-up/replay speedup, across 30+ measured steps - the signature CUDA
-  graph capture is supposed to produce (a sharp drop after ORT's own
-  2-run warm-up threshold) never appears. **CUDA graph capture is confirmed
-  not providing its documented benefit here**, for a reason not yet fully
-  isolated: the graph contains no control-flow ops (the usual documented
-  blocker), and `ort` 2.0.0-rc.13's verbose session logging did not surface
-  ORT's own internal capture-status diagnostics through its public API,
-  which is itself a real gap worth reporting upstream.
-- Separately, `ort::memory::Allocator::new` with an explicit CUDA/CUDA_PINNED
-  `MemoryInfo` fails with ONNX Runtime's own "No requested allocator
-  available" on this session - `ort` exposes no binding for the
-  `CreateAndRegisterAllocator`/`use_env_allocators` mechanism ONNX Runtime's
-  own issue tracker names as the fix, so genuine GPU-resident tensor
-  allocation (as opposed to CPU-arena tensors bound via IoBinding, which is
-  what this crate uses) is not currently reachable through `ort`'s public
-  API at all.
+- The first pass at this (see git history) chased a "GPU slower than CPU"
+  result through a real bug (the KV cache was being fully re-copied
+  host-to-device every decode step instead of just the changed position -
+  fixed, and worth keeping regardless) and a "CUDA graph capture isn't
+  activating" finding that looked well-evidenced (`nvidia-smi` utilization,
+  per-call timing) but was built on a false premise.
+- The false premise: **the CUDA execution provider was silently failing to
+  register on every single run**, the entire time. `ep=Cuda` was logged,
+  `--cuda` was passed, cuDNN loaded without error - but every actual
+  compute node was running on `CPUExecutionProvider`. This was invisible
+  because `ort`'s own EP-registration errors are emitted through the Rust
+  `tracing` crate, not the ONNX Runtime C-API logger - and no `tracing`
+  subscriber was installed, so the error was silently discarded on every
+  run. Installing one (`tracing_subscriber::fmt()...init()`, now done
+  unconditionally at `WARN` level in `synth.rs`) surfaced the real error
+  immediately: `Error loading onnxruntime_providers_cuda.dll which depends
+  on cublasLt64_13.dll which is missing`.
+- The real root cause: `ort` 2.0.0-rc.13's `download-binaries` feature only
+  ships a CUDA-13-built ONNX Runtime (confirmed in `ort-sys`'s own build
+  script - "we only ship 13 for now"), but this machine only has CUDA
+  Toolkit 12.6 installed. A version mismatch, not a hardware or model
+  limitation. Fixed by installing just the missing CUDA 13 cuBLAS runtime
+  DLLs (`pip install nvidia-cublas`, far faster than a full Toolkit
+  reinstall) - see the setup instructions above.
+- With the CUDA EP genuinely active, ORT's own node-placement logs confirm
+  real GPU execution (2089/308/1159 nodes on `CUDAExecutionProvider` across
+  the three sessions) and `nvidia-smi` shows real bursty 0-53% utilization,
+  not the earlier flat ~15%.
+- **CUDA graph capture is still off** (`with_cuda_graph` defaults to
+  `false`; `ARKTTS_CUDA_GRAPH=1` re-enables it) - not because it isn't
+  activating, but because ONNX Runtime explicitly refuses it for this
+  model: some ops (INT4-quantization-adjacent and shape-related, 816/124/367
+  nodes across the three sessions) are CPU-assigned even with the CUDA EP
+  active, and ORT hard-errors rather than degrading gracefully when graph
+  capture is requested against a mixed-provider graph. This is a genuine,
+  documented ONNX Runtime constraint for this model as exported, not a bug
+  in this code or in `ort`.
 
-This is real, unfinished optimization work, not a hardware ceiling - the
-[SGLang Omni](#sglang-omni-serving) path proves the same architecture goes
-much faster (RTF 0.116) on datacenter GPUs where CUDA graph capture and
-FlashAttention are known to work end-to-end. The concrete next steps are:
-confirm whether `GatherBlockQuantized` (the INT4 quantization op) is what's
-blocking graph capture by testing an FP16-only export, wire up `ort`'s
-`Environment`-level logger callback to get ORT's real internal
-capture-status output, and/or patch `ort` to expose
-`CreateAndRegisterAllocator` for genuine device-resident tensors.
+The [SGLang Omni](#sglang-omni-serving) path is still faster (RTF 0.116) on
+the datacenter-class hardware it was validated against - full CUDA graph
+capture there comes from a model/runtime combination with complete CUDA op
+coverage, which this ONNX export does not have. Closing that remaining gap
+would mean re-exporting the model with the quantization ops replaced by
+CUDA-covered equivalents, which is separate, larger work.
 
 ## SGLang Omni Serving
 

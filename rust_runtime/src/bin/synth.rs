@@ -26,6 +26,10 @@ fn load_voice(name: &str) -> anyhow::Result<(Array2<i64>, VoiceMeta)> {
 }
 
 fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env().add_directive(tracing::Level::WARN.into()))
+        .init();
+
     let args: Vec<String> = std::env::args().collect();
     let use_cuda = args.iter().any(|a| a == "--cuda");
     let text = args

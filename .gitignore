@@ -32,4 +32,6 @@ pytorch_model*.bin
 /.cache_downloads/
 /rust_runtime/target/
 /rust_runtime/cudnn/
+/rust_runtime/cuda13_libs/
 /rust_runtime/*.wav
+/rust_runtime/*.log
