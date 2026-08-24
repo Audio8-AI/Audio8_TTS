@@ -41,6 +41,14 @@ pub const SLOW_LOGITS_SIZE: usize = 4097;
 pub const NORM_EPS: f64 = 1e-6;
 pub const ROPE_BASE: f32 = 1_000_000.0;
 pub const MAX_SEQ_LEN: usize = 2048;
+// From onnx_runtime/model/runtime_manifest.json - duplicated as constants
+// here (matching SlowAr's own internal semantic_begin_id/semantic_end_id
+// field values) so callers driving the sampling loop don't need a second,
+// separate source of truth for these IDs.
+pub const SEMANTIC_BEGIN_ID: i64 = 151678;
+pub const SEMANTIC_END_ID: i64 = 155773;
+pub const IM_END_ID: i64 = 151645;
+pub const SLOW_LOGITS_LAYOUT_SEMANTIC_THEN_EOS: bool = true;
 
 /// A linear layer whose weight may be Q4_0-quantized (candle QMatMul) or
 /// plain F32 (norms/embeddings are never routed through this type; only

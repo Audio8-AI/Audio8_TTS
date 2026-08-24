@@ -55,3 +55,7 @@ required-features = ["cuda"]
 name = "chained_decode_bench"
 path = "src/bin/chained_decode_bench.rs"
 required-features = ["cuda"]
+
+[[bin]]
+name = "synth"
+path = "src/bin/synth.rs"

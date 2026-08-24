@@ -38,6 +38,9 @@ pytorch_model*.bin
 
 /_mistralrs_reference/
 /candle_runtime/target/
+/candle_runtime/*.wav
+*.stackdump
+/.claude/
 # Extracted/converted/quantized model weights (regenerable from onnx_runtime/model/
 # via candle_runtime/scripts/extract_onnx_weights.py + repack_quantized_weights) and
 # scratch diagnostic dumps - not source, not distributed with the repo.
