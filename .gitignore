@@ -35,3 +35,10 @@ pytorch_model*.bin
 /rust_runtime/cuda13_libs/
 /rust_runtime/*.wav
 /rust_runtime/*.log
+
+/_mistralrs_reference/
+/candle_runtime/target/
+# Extracted/converted/quantized model weights (regenerable from onnx_runtime/model/
+# via candle_runtime/scripts/extract_onnx_weights.py + repack_quantized_weights) and
+# scratch diagnostic dumps - not source, not distributed with the repo.
+/candle_runtime/weights/
