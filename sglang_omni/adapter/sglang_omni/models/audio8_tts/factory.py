@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import json
 import os
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from sglang_omni.engines.omni.engine import OmniEngine
@@ -17,6 +19,20 @@ from sglang_omni.models.audio8_tts.runtime.audio8_sglang_ar import (
     Audio8ModelRunner,
     Audio8ResourceManager,
 )
+
+
+def uses_hybrid_slow_backbone(model_path: str) -> bool:
+    """True when the checkpoint's slow AR is the Falcon-H1 Mamba hybrid.
+
+    The 0.1B preview uses ``slow_backbone: falcon_h1`` and carries the mamba_*
+    config fields; the 0.6B preview is pure attention and has neither.
+    """
+    try:
+        with open(Path(model_path) / "config.json", encoding="utf-8") as handle:
+            config = json.load(handle)
+    except OSError:
+        return False
+    return config.get("slow_backbone") == "falcon_h1" or "mamba_d_ssm" in config
 
 
 def create_audio8_engine(
@@ -39,9 +55,29 @@ def create_audio8_engine(
     from sglang_omni.engines.omni.runtime.sglang_ar import SGLangBatchPlanner
     from sglang_omni.models.audio8_tts.sglang_model import Audio8SGLangModel
 
+    hybrid = uses_hybrid_slow_backbone(server_args.model_path)
+    if hybrid:
+        from sglang_omni.models.audio8_tts.sglang_model_hybrid import (
+            Audio8HybridSGLangModel,
+        )
+
+        model_cls = Audio8HybridSGLangModel
+        # The eager Falcon-H1 slow backbone (Mamba + attention) is not CUDA
+        # graph capturable, and it does not consume the SGLang KV pages, so
+        # keep the scheduler's static KV fraction small.
+        setattr(server_args, "disable_" + "cuda_graph", True)
+        server_args.mem_fraction_static = min(
+            float(server_args.mem_fraction_static), 0.05
+        )
+        server_args.chunked_prefill_size = max(
+            int(server_args.chunked_prefill_size), 65536
+        )
+    else:
+        model_cls = Audio8SGLangModel
+
     # Register lazily in the worker process so the adapter does not require a
     # patch to SGLang-Omni's hard-coded model registry bootstrap.
-    ModelRegistry.models["ArkttsModel"] = Audio8SGLangModel
+    ModelRegistry.models["ArkttsModel"] = model_cls
 
     if server_args.attention_backend is None:
         server_args.attention_backend = "fa3"
