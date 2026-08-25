@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import importlib.util
+import inspect
 import json
 import logging
 import os
@@ -237,11 +238,14 @@ def create_sglang_tts_engine_executor(
         codes_only_ids.discard(payload.request_id)
         return store_state(payload, state)
 
+    executor_kwargs: dict[str, Any] = {}
+    if "stream_enabled" in inspect.signature(EngineExecutor.__init__).parameters:
+        executor_kwargs["stream_enabled"] = stream_enabled
     executor = EngineExecutor(
         engine=engine,
         request_builder=request_builder,
         result_builder=result_builder,
-        stream_enabled=stream_enabled,
+        **executor_kwargs,
     )
 
     def set_stream_fn(stream_fn: Any) -> None:

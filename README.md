@@ -169,6 +169,34 @@ revision instead of the latest `main` branch.
 | Transformers | `4.57.1` |
 | Precision | BF16 |
 
+### Audio8-TTS-0.1B (Falcon-H1 hybrid slow backbone)
+
+`Audio8-TTS-Preview-0.1b` replaces the pure-attention slow AR backbone with a
+Falcon-H1 hybrid (Mamba 2 SSM + attention). The adapter detects this
+automatically from `config.json` (`slow_backbone: falcon_h1` or a `mamba_d_ssm`
+field) and switches to the eager hybrid path: the slow backbone runs with one
+`FalconHybridMambaAttentionDynamicCache` per request, while the fast codebook
+AR, semantic sampling and vocoder are shared with the 0.6B path. The 0.6B
+path is unchanged.
+
+```bash
+export MODEL=/models/Audio8-TTS-Preview-0.1b
+export CONFIG=./sglang_omni/configs/audio8_tts_0_1b.yaml
+export MODEL_NAME=audio8/tts-0.1b
+
+CUDA_VISIBLE_DEVICES=0 \
+SGLANG_OMNI_ROOT="${SGLANG_OMNI_ROOT}" \
+MODEL="${MODEL}" \
+CONFIG="${CONFIG}" \
+MODEL_NAME="${MODEL_NAME}" \
+./sglang_omni/scripts/run_server.sh
+```
+
+Because the Mamba backbone keeps its own hybrid caches and does not consume
+SGLang KV pages, the adapter disables CUDA graphs and caps the static memory
+fraction for this model. The slow backbone is bit-exact with the Transformers
+Falcon-H1 implementation for both prefill and cached decode.
+
 ### Performance
 
 Warm single-stream latency was measured on one NVIDIA H20 with BF16 weights,

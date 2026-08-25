@@ -45,6 +45,9 @@ class Audio8SGLangRequestData(SGLangARRequestData):
     do_sample: bool = True
     _previous_semantic_tokens: list[int] = field(default_factory=list)
     _last_codebook_values: torch.Tensor | None = None
+    # Falcon-H1 hybrid slow cache (Mamba states + attention KV) used by the
+    # 0.1B path. Created at prefill, carried through decode, freed at the end.
+    _slow_cache: Any | None = None
 
 
 class Audio8IterationController:
@@ -183,6 +186,13 @@ class Audio8ModelRunner:
                     data.req.rid,
                 )
 
+        # Hand the per-request Falcon-H1 hybrid caches to the model (0.1B path
+        # only; Audio8SGLangModel has no ``_batch_slow_caches`` attribute).
+        if hasattr(model, "_batch_slow_caches"):
+            model._batch_slow_caches = [
+                scheduled.data._slow_cache for scheduled in scheduler_output.requests
+            ]
+
     def _build_outputs(self, scheduler_output: SchedulerOutput) -> dict[str, RequestOutput]:
         model = self.model_worker.model_runner.model
         outputs: dict[str, RequestOutput] = {}
@@ -205,6 +215,7 @@ class Audio8ModelRunner:
         schedule_batch = scheduler_output.batch_data
         worker_batch = schedule_batch.get_model_worker_batch()
         is_prefill = schedule_batch.forward_mode.is_extend()
+        model = self.model_worker.model_runner.model
         if len(scheduler_output.requests) != len(schedule_batch.reqs):
             logger.warning(
                 "AUDIO8-ALIGN requests=%d batch_reqs=%d batch_rows=%s mode=%s",
@@ -222,6 +233,11 @@ class Audio8ModelRunner:
             self._inject_reference_embeds(worker_batch, scheduler_output)
         forward_batch = ForwardBatch.init_new(worker_batch, self.model_worker.model_runner)
         batch_result = self.model_worker.forward_batch_generation(forward_batch)
+        if hasattr(model, "_batch_slow_caches"):
+            # Prefill seeds / decode advances each request's Falcon-H1 hybrid
+            # cache; persist it back onto the request data for the next step.
+            for index, scheduled in enumerate(scheduler_output.requests):
+                scheduled.data._slow_cache = model._batch_slow_caches[index]
         if schedule_batch.is_prefill_only:
             batch_result.next_token_ids = torch.zeros(
                 len(worker_batch.seq_lens),
@@ -230,7 +246,6 @@ class Audio8ModelRunner:
             )
         self.batch_planner.record_last_batch(schedule_batch)
         outputs = self._build_outputs(scheduler_output)
-        model = self.model_worker.model_runner.model
         batch = len(scheduler_output.requests)
         schedule_batch.output_ids = model._output_semantic_ids[:batch].clone()
         request_ids = [request.request_id for request in scheduler_output.requests]
@@ -252,6 +267,7 @@ class Audio8ResourceManager(SGLangResourceManager):
         release_kv_cache(data.req, self.tree_cache)
         data._previous_semantic_tokens.clear()
         data._last_codebook_values = None
+        data._slow_cache = None
         if self._freed_since_compact >= 64:
             self._freed_since_compact = 0
             if torch.cuda.is_available():

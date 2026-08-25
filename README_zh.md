@@ -149,6 +149,31 @@ paged attention、动态 batching、Fast AR 固定 KV cache、参考音频编码
 | Transformers | `4.57.1` |
 | 精度 | BF16 |
 
+### Audio8-TTS-0.1B（Falcon-H1 混合慢速主干）
+
+`Audio8-TTS-Preview-0.1b` 将纯注意力的慢速 AR 主干替换为 Falcon-H1 混合结构
+（Mamba 2 SSM + 注意力）。适配器会自动从 `config.json` 检测（`slow_backbone:
+falcon_h1` 或存在 `mamba_d_ssm` 字段）并切换到 eager 混合路径：慢速主干为每个
+请求维护一个 `FalconHybridMambaAttentionDynamicCache`，而快速码本 AR、语义采样
+与声码器与 0.6B 路径完全共用，0.6B 路径不受影响。
+
+```bash
+export MODEL=/models/Audio8-TTS-Preview-0.1b
+export CONFIG=./sglang_omni/configs/audio8_tts_0_1b.yaml
+export MODEL_NAME=audio8/tts-0.1b
+
+CUDA_VISIBLE_DEVICES=0 \
+SGLANG_OMNI_ROOT="${SGLANG_OMNI_ROOT}" \
+MODEL="${MODEL}" \
+CONFIG="${CONFIG}" \
+MODEL_NAME="${MODEL_NAME}" \
+./sglang_omni/scripts/run_server.sh
+```
+
+由于 Mamba 主干自行维护混合缓存、不占用 SGLang KV 页，适配器会为该模型关闭
+CUDA Graph 并限制静态显存比例。慢速主干在 prefill 与增量 decode 上与
+Transformers 的 Falcon-H1 实现逐位一致。
+
 ### 性能
 
 单流 warm latency 在单张 NVIDIA H20 上测试，使用 BF16、CUDA Graph、greedy decoding，
