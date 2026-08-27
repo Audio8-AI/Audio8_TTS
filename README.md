@@ -21,6 +21,7 @@
 > model!
 >
 > [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--Preview--0.1b-yellow?style=for-the-badge)](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.1b)
+> [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Audio8--TTS--0.1B--ONNX--INT8-yellow?style=for-the-badge)](https://huggingface.co/Audio8/audio8-TTS-0.1B-ONNX-INT8)
 > [![Demo-0.1B Audio Samples](https://img.shields.io/badge/Demo--0.1B-Audio%20Samples-brightgreen?style=for-the-badge&logo=githubpages)](https://audio8-ai.github.io/Audio8_TTS/0.1B/)
 
 This repository provides the audio8_tts Preview checkpoint, Hugging Face remote
