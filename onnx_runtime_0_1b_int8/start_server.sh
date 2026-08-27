@@ -14,7 +14,8 @@ PORT="$PORT" nohup "$ROOT/run_server.sh" >"$ROOT/service.log" 2>&1 &
 PID=$!
 echo "$PID" >"$PID_FILE"
 for _ in {1..60}; do
-  if curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
+  if NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost \
+    curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
     echo "Audio8 0.1B TTS is ready: http://127.0.0.1:$PORT"
     exit 0
   fi
