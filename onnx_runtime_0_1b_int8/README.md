@@ -71,6 +71,11 @@ scope of this export.
 
 ## Local HTTP service
 
+The service includes the same local browser UI as the 0.6B ONNX runtime. Open
+`http://127.0.0.1:8024` after startup to enter text, select a voice, play or
+download WAV output, register a reference voice, inspect memory, and reload
+the runtime. The developer API remains available at `/docs`.
+
 ```bash
 bash start_server.sh
 curl http://127.0.0.1:8024/api/health

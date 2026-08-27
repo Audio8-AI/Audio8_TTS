@@ -45,6 +45,10 @@ bash run_infer.sh \
 
 ## HTTP 服务
 
+服务同时提供与 0.6B ONNX Runtime 相同的本地网页界面。启动后打开
+`http://127.0.0.1:8024`，即可输入文本、选择音色、播放或下载 WAV、注册参考音色、
+查看内存状态和重新加载运行时；开发者 API 文档仍在 `/docs`。
+
 ```bash
 bash start_server.sh
 curl http://127.0.0.1:8024/api/health

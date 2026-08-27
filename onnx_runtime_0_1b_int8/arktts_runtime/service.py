@@ -5,17 +5,21 @@ import gc
 import io
 import json
 import os
+import resource
+import subprocess
 import threading
+import time
 from pathlib import Path
 
 import numpy as np
 import soundfile as sf
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 from .registration import MAX_AUDIO_BYTES, VoiceRegistration
 from .runtime import ArkTtsRuntime
+from .web_ui import TEST_PAGE
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIR = Path(os.getenv("ARKTTS_MODEL_DIR", str(ROOT / "model"))).expanduser()
@@ -32,12 +36,13 @@ runtime: ArkTtsRuntime | None = None
 registration: VoiceRegistration | None = None
 request_lock = threading.RLock()
 active_stop: threading.Event | None = None
+service_started_at = time.monotonic()
 
 
 class TtsRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=1000)
     voice_name: str = "default"
-    max_new_tokens: int = Field(256, ge=1, le=2048)
+    max_new_tokens: int = Field(1024, ge=16, le=2048)
     temperature: float = Field(0.7, gt=0.0, le=2.0)
     top_p: float = Field(0.9, gt=0.0, le=1.0)
     top_k: int = Field(50, ge=1, le=4096)
@@ -49,6 +54,11 @@ class OpenAiSpeechRequest(BaseModel):
     input: str = Field(..., min_length=1, max_length=1000)
     voice: str = "default"
     response_format: str = "wav"
+
+
+@app.get("/", response_class=HTMLResponse)
+def test_page() -> str:
+    return TEST_PAGE
 
 
 def _load_runtime() -> ArkTtsRuntime:
@@ -105,6 +115,47 @@ def registration_status() -> dict:
     if registration is None:
         raise HTTPException(503, "registration is not initialized")
     return registration.status()
+
+
+def _linux_memory_mb() -> tuple[float | None, float | None]:
+    try:
+        values: dict[str, float] = {}
+        for line in Path("/proc/self/status").read_text(encoding="utf-8").splitlines():
+            name, separator, value = line.partition(":")
+            if separator and name in {"VmRSS", "VmHWM"}:
+                values[name] = float(value.strip().split()[0]) / 1024
+        return values.get("VmRSS"), values.get("VmHWM")
+    except (OSError, ValueError, IndexError):
+        return None, None
+
+
+def _mac_current_memory_mb() -> float | None:
+    try:
+        result = subprocess.run(
+            ["/bin/ps", "-o", "rss=", "-p", str(os.getpid())],
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=2,
+        )
+        return float(result.stdout.strip()) / 1024
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+
+
+@app.get("/api/system")
+def system_stats() -> dict:
+    current_mb, peak_mb = _linux_memory_mb()
+    if current_mb is None and os.uname().sysname == "Darwin":
+        current_mb = _mac_current_memory_mb()
+    if peak_mb is None:
+        usage = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+        peak_mb = usage / (1024 * 1024) if os.uname().sysname == "Darwin" else usage / 1024
+    return {
+        "memory": {"current_mb": current_mb, "peak_mb": peak_mb},
+        "uptime_seconds": time.monotonic() - service_started_at,
+        "refresh_interval_ms": 2000,
+    }
 
 
 @app.post("/api/voices/register")
@@ -236,10 +287,18 @@ def cancel() -> dict[str, bool]:
 
 @app.post("/api/runtime/reload")
 def reload_runtime() -> dict:
-    global runtime, registration
+    global active_stop, runtime, registration
+    if active_stop is not None:
+        active_stop.set()
+    started = time.monotonic()
     with request_lock:
         runtime = None
         registration = None
         gc.collect()
         obj = _load_runtime()
-    return {"ok": True, "precision": obj.precision, "codec_precision": obj.codec_precision}
+    return {
+        "ok": True,
+        "precision": obj.precision,
+        "codec_precision": obj.codec_precision,
+        "reload_seconds": time.monotonic() - started,
+    }
