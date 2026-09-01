@@ -1,0 +1,61 @@
+[package]
+name = "audio8_candle_runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+candle-core = { git = "https://github.com/huggingface/candle", branch = "main" }
+candle-nn = { git = "https://github.com/huggingface/candle", branch = "main" }
+ndarray = "0.17"
+tokenizers = "0.20"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+rand = "0.8"
+hound = "3"
+
+[features]
+cuda = ["candle-core/cuda", "candle-nn/cuda"]
+
+[lib]
+name = "audio8_candle_runtime"
+path = "src/lib.rs"
+
+[[bin]]
+name = "tokenizer_check"
+path = "src/bin/tokenizer_check.rs"
+
+[[bin]]
+name = "codec_decode_check"
+path = "src/bin/codec_decode_check.rs"
+
+[[bin]]
+name = "repack_quantized_weights"
+path = "src/bin/repack_quantized_weights.rs"
+
+[[bin]]
+name = "verify_gguf_weights"
+path = "src/bin/verify_gguf_weights.rs"
+
+[[bin]]
+name = "model_check"
+path = "src/bin/model_check.rs"
+
+[[bin]]
+name = "decode_graph_bench"
+path = "src/bin/decode_graph_bench.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "graph_smoke_test"
+path = "src/bin/graph_smoke_test.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "chained_decode_bench"
+path = "src/bin/chained_decode_bench.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "synth"
+path = "src/bin/synth.rs"

@@ -149,6 +149,224 @@ Download the ONNX model from
 [Audio8-TTS-Preview-0.6B-ONNX-INT4](https://huggingface.co/Audio8/Audio8-TTS-Preview-0.6B-ONNX-INT4)
 and follow the [ONNX Runtime guide](onnx_runtime/README.md).
 
+## Rust Runtime
+
+[`rust_runtime/`](rust_runtime/) is a native Rust port of the ONNX Runtime
+inference path, built against the [`ort`](https://ort.pyke.io/) crate. It runs
+the same INT4 Slow/Fast AR graphs and FP16 codec as `onnx_runtime/`, with a
+from-scratch Rust port of the tokenizer/prompt builder, autoregressive
+sampling loop, and KV-cache management.
+
+CPU and CUDA execution providers are both supported (`--cuda` flag). The CUDA
+path uses `ort`'s IoBinding API to keep the KV-cache and activation tensors
+address-stable across steps, avoiding a host-side reallocation on every
+autoregressive step.
+
+```bash
+cd rust_runtime
+cargo build --release --bin synth
+./target/release/synth.exe --cuda "Your text here."
+```
+
+Requires a registered voice at `../onnx_runtime/voices/` (see the [ONNX
+Runtime guide](onnx_runtime/README.md) for registration) and the downloaded
+ONNX model at `../onnx_runtime/model/`. The CUDA path additionally requires:
+
+- **cuDNN 9.x** for CUDA 12 (this repo was developed against 9.25.0.15).
+- **CUDA 13 cuBLAS runtime libraries**, even on a machine with only CUDA
+  Toolkit 12.x installed: `ort` 2.0.0-rc.13's `download-binaries` feature
+  fetches a CUDA-13-built ONNX Runtime, which needs `cublasLt64_13.dll` at
+  runtime regardless of what CUDA Toolkit version is on the system PATH. The
+  fastest way to get it without a full CUDA 13 Toolkit install:
+  `pip install nvidia-cublas --target rust_runtime/cuda13_libs`, then add
+  `rust_runtime/cuda13_libs/nvidia/cu13/bin/x86_64` to `PATH` alongside the
+  cuDNN directory before running.
+
+Both requirements' DLL directories need to be on `PATH` at build and run
+time; see `rust_runtime/cudnn/` and `rust_runtime/cuda13_libs/` (both
+gitignored - project-local, not committed).
+
+### Performance
+
+Measured on an RTX 3060 Laptop GPU (6 GB VRAM, consumer Ampere) and a 16-core
+Windows machine, same registered reference voice, comparable text lengths.
+Lower RTF is better.
+
+| Path | RTF |
+|---|---:|
+| **Rust, ONNX Runtime, CUDA (`rust_runtime/`)** | **2.01-3.36** (best warm run: 2.01) |
+| Python, ONNX Runtime, CPU (`onnx_runtime/`) | 2.72 |
+| Rust, candle, CUDA (`candle_runtime/`) | 2.93-3.91 (best warm run: 2.93) |
+| Rust, ONNX Runtime, CPU (`rust_runtime/`) | 3.21-4.63 |
+| Python, PyTorch, CUDA, eager mode (`audio8_tts_infer.py`) | 6.44 |
+| Rust, candle, CPU (`candle_runtime/`) | 14.78 |
+
+This machine is shared with other processes at measurement time (this
+development session's own GPU/CPU load among them) - `nvidia-smi`/CPU-counter
+checks during otherwise-idle moments still showed 40%+ GPU and ~79% CPU
+utilization from other work, which is enough to move these numbers by a
+factor of ~1.5x run to run. The ranges above reflect that; the best observed
+warm CUDA run (2.01) is the number to trust as the ceiling on this hardware
+when it isn't contended.
+
+Rust CUDA is tuned further on top of the base fix (TF32, explicit attention
+backend selection, exhaustive cuDNN conv algorithm search, and 2 pinned
+intra-op threads - CUDA-path only, see below) for the current best numbers.
+One real regression was caught and fixed along the way: pinning intra-op
+threads globally first *broke* the CPU path (3.48-4.42 -> 4.63, measured, not
+assumed) because it genuinely relies on multi-threaded matmul, unlike the
+CUDA path's few remaining CPU-fallback ops (see below), which are tiny
+single-sequence shape ops that gain nothing from extra threads. Scoping the
+thread pin to the CUDA execution provider only fixed it.
+
+`ort`'s `with_disable_cpu_fallback` (forcing every op onto CUDA) was also
+tried, on the theory that ORT's own CPU-fallback choice for cheap shape ops
+is tuned for larger/batched workloads and might lose to this model's
+hundreds of tiny sequential decode-loop calls. It hard-fails instead -
+`disable_cpu_fallback` blocks ORT's own perf-motivated placements exactly
+like a genuinely-unsupported op, with no way to distinguish the two through
+`ort`'s public API. Not pursued further.
+
+Rust CUDA is the fastest local path measured. Getting here took real,
+witnessed debugging, not just parameter tuning - worth recording because the
+mistake is easy to repeat:
+
+- The first pass at this (see git history) chased a "GPU slower than CPU"
+  result through a real bug (the KV cache was being fully re-copied
+  host-to-device every decode step instead of just the changed position -
+  fixed, and worth keeping regardless) and a "CUDA graph capture isn't
+  activating" finding that looked well-evidenced (`nvidia-smi` utilization,
+  per-call timing) but was built on a false premise.
+- The false premise: **the CUDA execution provider was silently failing to
+  register on every single run**, the entire time. `ep=Cuda` was logged,
+  `--cuda` was passed, cuDNN loaded without error - but every actual
+  compute node was running on `CPUExecutionProvider`. This was invisible
+  because `ort`'s own EP-registration errors are emitted through the Rust
+  `tracing` crate, not the ONNX Runtime C-API logger - and no `tracing`
+  subscriber was installed, so the error was silently discarded on every
+  run. Installing one (`tracing_subscriber::fmt()...init()`, now done
+  unconditionally at `WARN` level in `synth.rs`) surfaced the real error
+  immediately: `Error loading onnxruntime_providers_cuda.dll which depends
+  on cublasLt64_13.dll which is missing`.
+- The real root cause: `ort` 2.0.0-rc.13's `download-binaries` feature only
+  ships a CUDA-13-built ONNX Runtime (confirmed in `ort-sys`'s own build
+  script - "we only ship 13 for now"), but this machine only has CUDA
+  Toolkit 12.6 installed. A version mismatch, not a hardware or model
+  limitation. Fixed by installing just the missing CUDA 13 cuBLAS runtime
+  DLLs (`pip install nvidia-cublas`, far faster than a full Toolkit
+  reinstall) - see the setup instructions above.
+- With the CUDA EP genuinely active, ORT's own node-placement logs confirm
+  real GPU execution (2089/308/1159 nodes on `CUDAExecutionProvider` across
+  the three sessions) and `nvidia-smi` shows real bursty 0-53% utilization,
+  not the earlier flat ~15%.
+- **CUDA graph capture is still off** (`with_cuda_graph` defaults to
+  `false`; `ARKTTS_CUDA_GRAPH=1` re-enables it) - not because it isn't
+  activating, but because ONNX Runtime explicitly refuses it for this
+  model: some ops (816/124/367 nodes across the three sessions) are
+  CPU-assigned even with the CUDA EP active, and ORT hard-errors rather
+  than degrading gracefully when graph capture is requested against a
+  mixed-provider graph. This is a genuine, documented ONNX Runtime
+  constraint for this model as exported, not a bug in this code or in
+  `ort`.
+- Those CPU-fallback nodes were inspected directly (full node-by-node
+  placement logs, `ARKTTS_VERBOSE_ORT=1`): every one is `Gather`, `Concat`,
+  `Unsqueeze`, `Slice`, or `Cast` - cheap shape/indexing bookkeeping for the
+  KV cache, never `MatMul`, `Softmax`, `Attention`, or the INT4 quantization
+  ops. All real compute already runs on CUDA. ORT's own log explains this is
+  a deliberate choice ("shape related ops assigned to CPU to improve
+  perf"), not a coverage gap - confirmed by `with_disable_cpu_fallback`
+  hard-failing rather than running everything on GPU (see above). Chasing
+  full CUDA placement was correctly not worth pursuing further.
+
+The [SGLang Omni](#sglang-omni-serving) path is still faster (RTF 0.116) on
+the datacenter-class hardware it was validated against - full CUDA graph
+capture there comes from a model/runtime combination with complete CUDA op
+coverage, which this ONNX export does not have. Closing that remaining gap
+would mean re-exporting the model with the quantization ops replaced by
+CUDA-covered equivalents, which is separate, larger work.
+
+## Rust, candle Runtime (`candle_runtime/`)
+
+A second, independent Rust implementation of the DualAR model, built directly
+on [candle](https://github.com/huggingface/candle) (HuggingFace's Rust ML
+framework) instead of the ONNX Runtime. The motivation: ONNX Runtime refuses
+CUDA graph capture outright for this model because a handful of cheap
+shape-bookkeeping ops (`Gather`/`Concat`/`Unsqueeze`/`Slice`/`Cast`, never
+real compute) stay CPU-assigned, and ORT hard-errors on graph capture against
+any mixed-provider graph rather than degrading gracefully (see above). A
+model built natively in candle has no such mixed-provider constraint - every
+op, including the small shape ones, runs through the same CUDA backend, so
+graph capture was worth investigating as a path toward SGLang-class
+performance without needing SGLang itself (Linux-only compiled CUDA kernels,
+no Windows wheels - see below).
+
+**What's here:** a full from-scratch port of the DualAR architecture (24-layer
+slow AR + 4-layer fast AR, GQA, RoPE, RMSNorm) and the codec decoder (RVQ
+dequant, causal-masked transformer, ConvNeXt upsampling, DAC-style Snake
+vocoder) to candle, plus a from-scratch ONNX-to-candle weight conversion
+(`scripts/extract_onnx_weights.py` dequantizes the ONNX
+`GatherBlockQuantized`/`MatMulNBits` INT4 weights, `repack_quantized_weights`
+requantizes them into candle's Q4_0 GGUF format - the two formats are
+incompatible on block size, symmetry, and zero-point handling, so this is a
+real dequantize-then-requantize conversion, not a bit repack). Correctness
+was verified independently at each stage: model logits correlate 0.9956
+against the ONNX reference, the codec decoder correlates 1.0000 (mae
+0.000025), and end-to-end synthesis was verified via direct waveform
+inspection (RMS, duration, non-silence, and spectral speech-band
+concentration) exactly as done for every other engine in this project.
+
+**CUDA graph capture was not made reliable.** This is the honest negative
+result the investigation converged on, not a partial success. candle-core
+0.11.0 (and a git-main pin, hoping upstream's post-0.11.0 "Improve CUDA
+stream consistency" and "Add htod cache for cuda graphs" fixes would help)
+both show the same intermittent `CUDA_ERROR_ILLEGAL_ADDRESS` on the first
+launch after a successful capture+instantiate, once the captured region
+exceeds roughly one transformer layer's worth of ops: a single simple op
+captures reliably (8/8, 22/22 repeated runs), a single full layer succeeds
+only ~40% of the time (4/10 measured), and the full 4-layer forward pass
+captured as one graph failed 0/10+ times. Retry-until-success (up to 20
+attempts, since capture only happens once at model load) plus a per-layer
+chained-capture redesign (5 small graphs instead of 1 large one) were both
+tried as workarounds - the chained approach failed 0/8 on the first attempt
+per fresh process and 0/5 with 20 retries each (100 total attempts, zero
+successes), decisively worse than the single-op case, not solved by
+retrying. This is a real, reproducible reliability limitation in
+candle-core's current CUDA graph implementation on this GPU/driver
+combination, not a bug in this project's code - see
+`candle_runtime/src/graph_decode.rs`'s module doc for the full trail.
+
+**Result: correct, but not faster.** Without graph capture, the candle
+engine's plain (uncaptured) forward-pass execution measured RTF 2.93-3.91
+(best warm run 2.93) on CUDA - slightly worse than the already-tuned ONNX
+Runtime CUDA path (2.01-3.36, best 2.01) on the same hardware, same
+methodology (same text, same voice, same seed, same sampling parameters).
+The candle port's real value going forward is a correct, portable,
+from-scratch model implementation with no ONNX Runtime dependency, not a
+speed win - closing the gap to SGLang's 0.116 RTF still requires either an
+upstream candle-core CUDA graph reliability fix or a different graph-capture
+strategy not yet tried.
+
+### Building and running
+
+```
+cd candle_runtime
+# CPU:
+cargo build --release --bin synth
+ARKTTS_MODEL_DIR=../onnx_runtime/model ARKTTS_VOICES_DIR=../onnx_runtime/voices \
+  ./target/release/synth.exe "Your text here."
+
+# CUDA (needs cuDNN + the CUDA 13 cuBLAS runtime DLLs on PATH, same as
+# rust_runtime - see Setup above; candle-core is pinned to git main, which
+# additionally requires cl.exe on PATH to build its CUDA kernels from source):
+cargo build --release --bin synth --features cuda
+ARKTTS_MODEL_DIR=../onnx_runtime/model ARKTTS_VOICES_DIR=../onnx_runtime/voices \
+  ./target/release/synth.exe --cuda --repeat 3 "Your text here."
+```
+
+Weights are extracted from the ONNX model into `candle_runtime/weights/`
+(gitignored, regenerable) via `scripts/extract_onnx_weights.py` followed by
+the `repack_quantized_weights` binary; `synth` loads them from there directly.
+
 ## SGLang Omni Serving
 
 The adapter in [`sglang_omni/`](sglang_omni/) provides an OpenAI-compatible

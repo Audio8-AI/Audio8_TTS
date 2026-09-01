@@ -6,6 +6,7 @@ import ctypes
 import gc
 import json
 import os
+import platform
 import re
 import subprocess
 import threading
@@ -13,6 +14,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+import psutil
 import soundfile as sf
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
@@ -348,7 +350,7 @@ def require_registration() -> VoiceRegistration:
 
 def release_allocator_memory() -> None:
     gc.collect()
-    if os.uname().sysname != "Darwin":
+    if platform.system() != "Darwin":
         return
     try:
         system = ctypes.CDLL("/usr/lib/libSystem.B.dylib")
@@ -373,26 +375,48 @@ def _memory_value_mb(output: str, pattern: str) -> float | None:
     return value * {"KB": 1 / 1024, "MB": 1, "GB": 1024}[unit]
 
 
+def _memory_stats_darwin() -> tuple[float | None, float | None]:
+    try:
+        result = subprocess.run(
+            ["/usr/bin/footprint", str(os.getpid())],
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=5,
+        )
+        current_mb = _memory_value_mb(result.stdout, r"Footprint:\s*([\d.]+)\s*(KB|MB|GB)")
+        peak_mb = _memory_value_mb(
+            result.stdout, r"phys_footprint_peak:\s*([\d.]+)\s*(KB|MB|GB)"
+        )
+        return current_mb, peak_mb
+    except (OSError, subprocess.SubprocessError):
+        return None, None
+
+
+def _memory_stats_psutil() -> tuple[float | None, float | None]:
+    try:
+        process = psutil.Process(os.getpid())
+        info = process.memory_info()
+        current_mb = info.rss / (1024 * 1024)
+        peak_mb = getattr(info, "peak_wset", None)
+        if peak_mb is not None:
+            peak_mb = peak_mb / (1024 * 1024)
+        else:
+            peak_mb = current_mb
+        return current_mb, peak_mb
+    except (psutil.Error, OSError):
+        return None, None
+
+
 def memory_stats() -> dict[str, float | None]:
     now = time.monotonic()
     with memory_lock:
         if now - float(memory_cache["sampled_at"] or 0.0) < 1.0:
             return memory_cache.copy()
-        try:
-            result = subprocess.run(
-                ["/usr/bin/footprint", str(os.getpid())],
-                capture_output=True,
-                check=True,
-                text=True,
-                timeout=5,
-            )
-            current_mb = _memory_value_mb(result.stdout, r"Footprint:\s*([\d.]+)\s*(KB|MB|GB)")
-            peak_mb = _memory_value_mb(
-                result.stdout, r"phys_footprint_peak:\s*([\d.]+)\s*(KB|MB|GB)"
-            )
-        except (OSError, subprocess.SubprocessError):
-            current_mb = None
-            peak_mb = None
+        if platform.system() == "Darwin":
+            current_mb, peak_mb = _memory_stats_darwin()
+        else:
+            current_mb, peak_mb = _memory_stats_psutil()
         memory_cache.update(sampled_at=now, current_mb=current_mb, peak_mb=peak_mb)
         return memory_cache.copy()
 

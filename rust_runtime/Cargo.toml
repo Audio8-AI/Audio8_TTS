@@ -1,0 +1,36 @@
+[package]
+name = "audio8_rust_runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ort = { version = "=2.0.0-rc.13", features = ["cuda", "half"] }
+ndarray = "0.17"
+tokenizers = "0.20"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+rand = "0.8"
+hound = "3"
+half = "2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing = "0.1"
+
+[lib]
+name = "audio8_rust_runtime"
+path = "src/lib.rs"
+
+[[bin]]
+name = "probe"
+path = "src/bin/probe.rs"
+
+[[bin]]
+name = "synth"
+path = "src/bin/synth.rs"
+
+[patch.crates-io]
+# Upstream builds esaxx's C++ shim with /MT (static CRT), which conflicts at
+# link time with ort-sys's dynamically-linked ONNX Runtime binaries (/MD).
+# Vendored fix matches the (unmerged) upstream PR: static_crt(true) -> false.
+# https://github.com/Narsil/esaxx-rs/pull/19
+esaxx-rs = { path = "vendor/esaxx-rs" }

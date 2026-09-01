@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .venv/
+.venv-pytorch/
 
 outputs/
 runs/
@@ -26,3 +27,23 @@ prepared_data/
 *.pt
 *.ckpt
 pytorch_model*.bin
+
+.gm/
+.agentplug-kv/
+
+/.cache_downloads/
+/rust_runtime/target/
+/rust_runtime/cudnn/
+/rust_runtime/cuda13_libs/
+/rust_runtime/*.wav
+/rust_runtime/*.log
+
+/_mistralrs_reference/
+/candle_runtime/target/
+/candle_runtime/*.wav
+*.stackdump
+/.claude/
+# Extracted/converted/quantized model weights (regenerable from onnx_runtime/model/
+# via candle_runtime/scripts/extract_onnx_weights.py + repack_quantized_weights) and
+# scratch diagnostic dumps - not source, not distributed with the repo.
+/candle_runtime/weights/
