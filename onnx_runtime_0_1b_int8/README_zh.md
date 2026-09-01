@@ -27,6 +27,18 @@ bash setup.sh
 python scripts/register_default_voice.py
 ```
 
+Windows 用户请使用 PowerShell 脚本，不需要运行 `setup.sh`：
+
+```powershell
+py -3 -m pip install -U huggingface_hub
+hf download Audio8/audio8-TTS-0.1B-ONNX-INT8 --local-dir model
+.\setup.ps1
+.\.venv\Scripts\python.exe scripts\register_default_voice.py
+```
+
+如果 PowerShell 禁止执行本地脚本，可以运行：
+`powershell -ExecutionPolicy Bypass -File .\setup.ps1`。
+
 模型文件放在本目录的 `model/` 下。`registration/` 下的 encoder 是可选的，
 只在从音频注册新音色时需要。默认音色脚本只读取 `reference_codes.npy`。
 
@@ -43,6 +55,16 @@ bash run_infer.sh \
 同时会生成 `[10, frames]` 形状的 `outputs/test.npy`。模型或音色放在其他位置时，
 可设置 `ARKTTS_MODEL_DIR`、`ARKTTS_VOICES_DIR`。
 
+Windows PowerShell 推理命令：
+
+```powershell
+.\run_infer.ps1 `
+  --text "这是一个中文测试" `
+  --voice default `
+  --max-new-tokens 128 `
+  --output outputs\test.wav
+```
+
 ## HTTP 服务
 
 服务同时提供与 0.6B ONNX Runtime 相同的本地网页界面。启动后打开
@@ -57,10 +79,24 @@ curl http://127.0.0.1:8024/api/health
 服务提供 `/api/tts`、`/api/tts/stream`、`/api/tts/cancel`、音色查询和注册接口，
 以及兼容 OpenAI 的 `/v1/audio/speech`。使用 `bash stop_server.sh` 停止服务。
 
+Windows PowerShell 使用：
+
+```powershell
+.\start_server.ps1
+Invoke-WebRequest http://127.0.0.1:8024/api/health
+.\stop_server.ps1
+```
+
 ## 测试
 
 ```bash
 "$PWD/.venv/bin/python" -m pytest -q tests
+```
+
+Windows：
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q tests
 ```
 
 请在获得授权后进行音色克隆，并在适当场景披露合成音频。

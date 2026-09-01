@@ -5,11 +5,16 @@ import gc
 import io
 import json
 import os
-import resource
+import platform
 import subprocess
 import threading
 import time
 from pathlib import Path
+
+try:
+    import resource
+except ImportError:  # Windows has no resource module.
+    resource = None  # type: ignore[assignment]
 
 import numpy as np
 import soundfile as sf
@@ -146,11 +151,12 @@ def _mac_current_memory_mb() -> float | None:
 @app.get("/api/system")
 def system_stats() -> dict:
     current_mb, peak_mb = _linux_memory_mb()
-    if current_mb is None and os.uname().sysname == "Darwin":
+    system = platform.system()
+    if current_mb is None and system == "Darwin":
         current_mb = _mac_current_memory_mb()
-    if peak_mb is None:
+    if peak_mb is None and resource is not None:
         usage = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
-        peak_mb = usage / (1024 * 1024) if os.uname().sysname == "Darwin" else usage / 1024
+        peak_mb = usage / (1024 * 1024) if system == "Darwin" else usage / 1024
     return {
         "memory": {"current_mb": current_mb, "peak_mb": peak_mb},
         "uptime_seconds": time.monotonic() - service_started_at,

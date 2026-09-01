@@ -33,6 +33,18 @@ bash setup.sh
 python scripts/register_default_voice.py
 ```
 
+On Windows, use the native PowerShell entry points instead of `setup.sh`:
+
+```powershell
+py -3 -m pip install -U huggingface_hub
+hf download Audio8/audio8-TTS-0.1B-ONNX-INT8 --local-dir model
+.\setup.ps1
+.\.venv\Scripts\python.exe scripts\register_default_voice.py
+```
+
+If PowerShell blocks local scripts, run them with
+`powershell -ExecutionPolicy Bypass -File .\setup.ps1`.
+
 The model directory must contain:
 
 ```text
@@ -65,6 +77,16 @@ bash run_infer.sh \
 The command also writes `outputs/test.npy` with generated codes shaped
 `[10, frames]`.
 
+The equivalent Windows command is:
+
+```powershell
+.\run_infer.ps1 `
+  --text "这是一个中文测试" `
+  --voice default `
+  --max-new-tokens 128 `
+  --output outputs\test.wav
+```
+
 Set `ARKTTS_MODEL_DIR` or `ARKTTS_VOICES_DIR` to use another location. The
 runtime always selects `CPUExecutionProvider`; GPU execution is outside the
 scope of this export.
@@ -89,10 +111,24 @@ The service exposes `/api/tts`, `/api/tts/stream`, `/api/tts/cancel`,
 `/api/voices`, `/api/voices/register`, `/api/registration/status`, and the
 OpenAI-compatible `/v1/audio/speech`. Stop it with `bash stop_server.sh`.
 
+On Windows PowerShell, use the managed wrappers:
+
+```powershell
+.\start_server.ps1
+Invoke-WebRequest http://127.0.0.1:8024/api/health
+.\stop_server.ps1
+```
+
 ## Verification
 
 ```bash
 "$PWD/.venv/bin/python" -m pytest -q tests
+```
+
+On Windows:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q tests
 ```
 
 `test_contract.py` checks the exact input/output names and shapes when
