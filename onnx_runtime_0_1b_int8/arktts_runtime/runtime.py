@@ -351,6 +351,13 @@ class ArkTtsRuntime:
             raise ValueError("this runtime only supports relative_semantic_then_eos logits")
         if values.size != expected:
             raise ValueError(f"unexpected slow logits size: {values.size}, expected {expected}")
+        if not previous:
+            # A sampled EOS at the voice prompt boundary produces no codec frame
+            # and used to surface as an HTTP 500 from ``synthesize``.  The first
+            # frame is always required for a valid TTS result; EOS remains
+            # available on every subsequent step.
+            values = values.copy()
+            values[-1] = -np.inf
         normal_index = _sample(values, temperature, top_p, top_k, rng)
         high_index = _sample(values, 1.0, 0.9, top_k, rng)
         normal = stop if normal_index == expected - 1 else begin + normal_index
